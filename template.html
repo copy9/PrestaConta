@@ -92,6 +92,23 @@ main{padding-block:28px 64px}
 .chip.ok{color:var(--ok);background:var(--ok-bg);border-color:transparent;font-weight:600}
 .chip.warn{color:var(--warn);background:var(--warn-bg);border-color:transparent;font-weight:600}
 .chip.ml{color:var(--data);background:var(--data-bg);border-color:transparent;font-weight:600}
+.chip.crit{color:var(--crit);background:var(--crit-bg);border-color:transparent;font-weight:600}
+/* linha de alerta: a empresa aparece dos dois lados do dinheiro */
+tr.alerta td{background:var(--crit-bg)}
+tr.alerta td:first-child{box-shadow:inset 3px 0 0 var(--crit)}
+/* barra empilhada: como a pessoa votou, em proporcao */
+.pilha{display:flex;height:6px;border-radius:99px;overflow:hidden;background:var(--surface-3);min-width:80px}
+.pilha i{display:block;height:100%}
+.pilha i.ok{background:var(--ok)} .pilha i.crit{background:var(--crit)} .pilha i.warn{background:var(--warn)}
+/* lista de votacoes recentes */
+.vtlista{display:grid;gap:8px}
+.vtitem{display:grid;gap:7px;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer;
+  padding:13px 15px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.vtitem:hover{border-color:var(--line-2)}
+.vtcab{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+.vtcab b{font-size:13.5px;font-weight:600;overflow-wrap:anywhere}
+.vtpe{display:flex;gap:10px;justify-content:space-between;font-size:11.5px;color:var(--muted)}
+.dupla{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;align-items:start}
 .dot{width:6px;height:6px;border-radius:99px;background:currentColor;flex:none}
 .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
@@ -323,6 +340,9 @@ footer .wrap{padding-block:24px;font-size:12.5px;color:var(--muted);display:grid
       <button type="button" data-go="inicio">Início</button>
       <button type="button" data-go="parlamentares">Parlamentares</button>
       <button type="button" data-go="patrimonio">Patrimônio</button>
+      <button type="button" data-go="campanha">Campanha</button>
+      <button type="button" data-go="votacoes">Votações</button>
+      <button type="button" data-go="emendas">Emendas</button>
       <button type="button" data-go="cota">Cota parlamentar</button>
       <button type="button" data-go="ligacoes">Ligações</button>
       <button type="button" data-go="composicao">Composição</button>
@@ -394,7 +414,8 @@ footer .wrap{padding-block:24px;font-size:12.5px;color:var(--muted);display:grid
       <div class="prosa">
         <p>No Brasil quase tudo já é público. O TSE publica quem se candidatou, o patrimônio declarado e quem financiou a campanha. A Receita publica o quadro societário de <strong>mais de 70 milhões de empresas</strong>. A CGU publica contratos, emendas e sanções. O que não existe é a ligação entre eles.</p>
         <p>São cinco sistemas, cinco formatos e nenhuma chave em comum. O CPF do sócio <strong>vem mascarado na origem</strong>, com só seis dígitos visíveis — então nem o cruzamento mais óbvio é automático.</p>
-        <p>Aqui o primeiro trecho do caminho já está montado: cada parlamentar, cada real da cota que ele gastou desde 2023 e <strong>o CNPJ de cada empresa que recebeu esse dinheiro</strong>. Falta o lado da Receita para fechar o círculo.</p>
+        <p>Aqui o caminho já está montado de ponta a ponta, menos um pedaço: cada parlamentar, o patrimônio que declarou eleição a eleição, <strong>quem bancou a campanha dele</strong>, as empresas que a campanha pagou, como votou em cada votação nominal, as emendas que assinou e para onde o dinheiro foi, e <strong>o CNPJ de cada empresa paga com a cota do mandato</strong>.</p>
+        <p>Com isso dá para perguntar uma coisa que nenhuma das bases responde sozinha: <strong>a empresa que recebeu da cota é a mesma que a campanha já tinha pago?</strong> Falta o quadro societário da Receita para o último passo — saber quem são os donos dessas empresas.</p>
       </div>
     </div>
 
@@ -402,6 +423,9 @@ footer .wrap{padding-block:24px;font-size:12.5px;color:var(--muted);display:grid
       <p class="eyebrow">O que já está aqui</p>
       <div class="feats">
         <button type="button" class="feat" data-go="parlamentares"><h4>594 fichas completas</h4><p>Foto oficial, nome civil, nascimento, naturalidade, escolaridade, gabinete, telefone, redes e o gasto do mandato.</p><span class="vai">Abrir diretório &rarr;</span></button>
+        <button type="button" class="feat" data-go="campanha"><h4>Quem bancou a eleição</h4><p>Doador a doador, com valor e natureza, e as empresas que a campanha contratou — mais o cruzamento com as que receberam da cota depois.</p><span class="vai">Ver campanha &rarr;</span></button>
+        <button type="button" class="feat" data-go="votacoes"><h4>Como cada um votou</h4><p>Voto nominal no plenário, presença e quantas vezes votou contra a orientação da própria bancada.</p><span class="vai">Ver votações &rarr;</span></button>
+        <button type="button" class="feat" data-go="emendas"><h4>Emendas de autoria</h4><p>Quanto cada parlamentar empenhou, quanto saiu do caixa de fato e para qual município ou órgão o dinheiro foi.</p><span class="vai">Ver emendas &rarr;</span></button>
         <button type="button" class="feat" data-go="cota"><h4>Para onde vai a cota</h4><p>Ranking de gasto por deputado e as empresas que mais receberam, com CNPJ, somadas as notas de todos os gabinetes.</p><span class="vai">Ver a cota &rarr;</span></button>
         <button type="button" class="feat" data-go="ligacoes"><h4>Ligações gabinete–empresa</h4><p>As empresas que concentraram muito dinheiro em poucos gabinetes, com o desenho de quem pagou quanto.</p><span class="vai">Ver ligações &rarr;</span></button>
         <button type="button" class="feat" data-go="composicao"><h4>Composição das casas</h4><p>Quantos parlamentares cada partido e cada estado têm hoje, calculado sobre os registros coletados.</p><span class="vai">Ver composição &rarr;</span></button>
@@ -445,6 +469,9 @@ footer .wrap{padding-block:24px;font-size:12.5px;color:var(--muted);display:grid
       <button type="button" class="voltar" data-back="parlamentares">&larr; Todos os parlamentares</button>
       <div class="card ficha" id="pl-ficha"></div>
       <div id="pl-patr"></div>
+      <div id="pl-campanha"></div>
+      <div id="pl-emendas"></div>
+      <div id="pl-votos"></div>
       <div id="pl-cota"></div>
       <div class="sec">
         <header><div><h2>O que esta ficha ainda não mostra</h2><small>Cada item depende de uma base que ainda não está conectada</small></div></header>
@@ -476,6 +503,109 @@ footer .wrap{padding-block:24px;font-size:12.5px;color:var(--muted);display:grid
       </div>
       <div class="tablewrap"><table id="pt-rank"></table></div>
       <p class="hint">Valores nominais, como declarados, <b>sem correção pela inflação</b> — parte do aumento é só o dinheiro valendo menos. A declaração é feita pelo próprio candidato no registro da candidatura. Variação alta não é indício de nada por si só: pode ser herança, venda de empresa ou reavaliação de imóvel.</p>
+    </div>
+  </section>
+
+  <!-- ============ CAMPANHA ============ -->
+  <section class="view" id="view-campanha" hidden>
+    <div class="statstrip" id="cp-stats"></div>
+    <div class="sec">
+      <header><div><h2>De onde veio o dinheiro</h2><small id="cp-fonte-sub"></small></div></header>
+      <div class="tablewrap"><table id="cp-fontes"></table></div>
+      <p class="hint">Fundo Partidário e Fundo Eleitoral (FEFC) são <b>dinheiro público</b> repassado pelo partido. "Recursos próprios" é o que o próprio candidato pôs. O resto é doação de pessoa física — empresa não pode doar para campanha desde 2015.</p>
+    </div>
+
+    <div class="sec rule">
+      <header><div><h2>O dinheiro que deu a volta</h2>
+        <small>Empresas que a campanha pagou e que depois receberam da cota do mandato</small></div></header>
+      <div class="prosa" style="max-width:72ch">
+        <p>Este é o cruzamento que as duas bases permitem fazer sozinhas: o <strong>mesmo CNPJ</strong> aparece como fornecedor da campanha eleitoral e, já no mandato, como fornecedor pago com a cota parlamentar. Não é prova de irregularidade — pode ser a gráfica de sempre. Mas é onde olhar primeiro.</p>
+      </div>
+      <div class="filtros">
+        <label>Buscar<span class="busca"><svg class="lupa" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><line x1="10.9" y1="10.9" x2="14.4" y2="14.4"/></svg><input type="search" id="cp-qv" placeholder="empresa, CNPJ ou parlamentar" autocomplete="off"></span></label>
+      </div>
+      <p class="achou" id="cp-volta-achou"></p>
+      <div class="tablewrap"><table id="cp-volta"></table></div>
+      <p class="hint">Fornecedor nacional aparece aqui por tabela: quase toda campanha anuncia em rede social e manda carta pelos Correios, e quase todo gabinete também. <b>O que merece atenção é a empresa pequena e local</b> que aparece dos dois lados do mesmo parlamentar — use a busca para filtrar por nome.</p>
+    </div>
+
+    <div class="sec rule">
+      <header><div><h2>Maiores doadores do Congresso</h2><small id="cp-doa-sub"></small></div></header>
+      <div class="filtros">
+        <label>Buscar<span class="busca"><svg class="lupa" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><line x1="10.9" y1="10.9" x2="14.4" y2="14.4"/></svg><input type="search" id="cp-qd" placeholder="nome do doador ou documento" autocomplete="off"></span></label>
+        <label>Eleição<select id="cp-ano"></select></label>
+      </div>
+      <p class="achou" id="cp-doa-achou"></p>
+      <div class="tablewrap"><table id="cp-doadores"></table></div>
+      <p class="hint">Somando o que cada doador deu a todos os atuais parlamentares. Partido no topo da lista significa repasse de fundo público, não doação de pessoa.</p>
+    </div>
+
+    <div class="sec rule">
+      <header><div><h2>Quem mais arrecadou</h2><small id="cp-rank-sub"></small></div></header>
+      <div class="filtros">
+        <label>Buscar<span class="busca"><svg class="lupa" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><line x1="10.9" y1="10.9" x2="14.4" y2="14.4"/></svg><input type="search" id="cp-qr" placeholder="nome, partido ou UF" autocomplete="off"></span></label>
+      </div>
+      <p class="achou" id="cp-rank-achou"></p>
+      <div class="tablewrap"><table id="cp-rank"></table></div>
+    </div>
+  </section>
+
+  <!-- ============ VOTAÇÕES ============ -->
+  <section class="view" id="view-votacoes" hidden>
+    <div class="statstrip" id="vt-stats"></div>
+    <div class="sec">
+      <header><div><h2>Presença e fidelidade</h2><small id="vt-rank-sub"></small></div></header>
+      <div class="prosa" style="max-width:72ch">
+        <p><strong>Presença</strong> é em quantas votações nominais a pessoa registrou voto, contadas só as que aconteceram entre a primeira e a última vez que ela votou — quem assumiu no meio da legislatura não é punido por ausência anterior à posse. <strong>Fidelidade</strong> é quantas vezes votou igual à orientação oficial da própria bancada.</p>
+      </div>
+      <div class="filtros">
+        <label>Buscar<span class="busca"><svg class="lupa" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><line x1="10.9" y1="10.9" x2="14.4" y2="14.4"/></svg><input type="search" id="vt-q" placeholder="nome, partido ou UF" autocomplete="off"></span></label>
+        <label>Ordenar por<select id="vt-ord">
+          <option value="fid">Mais fiel ao partido</option>
+          <option value="infid">Mais vezes contra o partido</option>
+          <option value="pres">Maior presença</option>
+          <option value="aus">Maior ausência</option>
+          <option value="votos">Mais votações</option>
+        </select></label>
+        <label>Partido<select id="vt-partido"><option value="">Todos</option></select></label>
+      </div>
+      <p class="achou" id="vt-rank-achou"></p>
+      <div class="tablewrap"><table id="vt-rank"></table></div>
+    </div>
+    <div class="sec rule">
+      <header><div><h2>Últimas votações do plenário</h2><small id="vt-recentes-sub"></small></div></header>
+      <div class="vtlista" id="vt-recentes"></div>
+      <p class="hint">Só votação nominal entra aqui: a simbólica não registra o voto de cada deputado, e a maior parte do que o plenário aprova é simbólica. Clique numa votação para ver o placar por partido e como cada um votou.</p>
+    </div>
+  </section>
+
+  <!-- ============ EMENDAS ============ -->
+  <section class="view" id="view-emendas" hidden>
+    <div class="statstrip" id="em-stats"></div>
+    <div class="sec">
+      <header><div><h2>Quem mandou mais dinheiro</h2><small id="em-rank-sub"></small></div></header>
+      <div class="prosa" style="max-width:72ch">
+        <p><strong>Empenhado</strong> é o dinheiro reservado no orçamento. <strong>Pago</strong> é o que de fato saiu do caixa — a diferença entre os dois é a emenda que foi anunciada mas ainda não virou obra. O destino é o município ou o órgão que recebeu.</p>
+      </div>
+      <div class="filtros">
+        <label>Buscar<span class="busca"><svg class="lupa" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><line x1="10.9" y1="10.9" x2="14.4" y2="14.4"/></svg><input type="search" id="em-q" placeholder="nome, partido ou UF" autocomplete="off"></span></label>
+        <label>Ordenar por<select id="em-ord">
+          <option value="pago">Maior valor pago</option>
+          <option value="emp">Maior valor empenhado</option>
+          <option value="gap">Maior diferença entre empenhado e pago</option>
+          <option value="n">Mais emendas</option>
+        </select></label>
+        <label>Ano<select id="em-ano"><option value="">Todos</option></select></label>
+      </div>
+      <p class="achou" id="em-rank-achou"></p>
+      <div class="tablewrap"><table id="em-rank"></table></div>
+    </div>
+    <div class="sec rule">
+      <header><div><h2>Para onde o dinheiro foi</h2><small>Somando as emendas de todos os parlamentares em exercício</small></div></header>
+      <div class="dupla">
+        <div><p class="eyebrow">Por área</p><div class="tablewrap"><table id="em-funcoes"></table></div></div>
+        <div><p class="eyebrow">Por destino</p><div class="tablewrap"><table id="em-locais"></table></div></div>
+      </div>
     </div>
   </section>
 
@@ -706,6 +836,86 @@ var PARL_IDX={};
 PARL.forEach(function(p){PARL_IDX[p.id]=p;});
 function parlPorId(id){return PARL_IDX[id];}
 
+/* ---------- campanha: doações recebidas e contratos da campanha ---------- */
+var ANOS_CAMP=(DADOS.campanha_anos||[]).map(String);
+var COM_CAMP=PARL.filter(function(p){return p.campanha;});
+function campDe(p,ano){ return (p&&p.campanha&&p.campanha[ano])||null; }
+function campTotal(p,ano){ var c=campDe(p,ano); return c?c.total:0; }
+/* o dinheiro de fundo partidário e de fundo eleitoral é dinheiro público */
+function ehPublico(fonte){
+  var f=(fonte||"").toLowerCase();
+  return f.indexOf("fundo")>=0 || f.indexOf("partido pol")>=0;
+}
+/* doadores somados: o mesmo doador costuma financiar vários parlamentares */
+var DOADORES=(function(){
+  var m={};
+  COM_CAMP.forEach(function(p){
+    ANOS_CAMP.forEach(function(ano){
+      var c=campDe(p,ano); if(!c) return;
+      c.doadores.forEach(function(d){
+        var k=(d.doc||("n:"+d.nome))+"|"+ano;
+        var a=m[k]||(m[k]={doc:d.doc,nome:d.nome,tipo:d.tipo,fonte:d.fonte,ano:ano,valor:0,quem:[]});
+        a.valor+=d.valor;
+        a.quem.push({id:p.id,valor:d.valor});
+      });
+    });
+  });
+  return Object.keys(m).map(function(k){
+    var a=m[k]; a.n=a.quem.length;
+    a.quem.sort(function(x,y){return y.valor-x.valor;});
+    return a;
+  }).sort(function(a,b){return b.valor-a.valor;});
+})();
+/* quantos parlamentares cada doador financiou, somando as eleições */
+var DOADOR_N={};
+DOADORES.forEach(function(d){
+  var k=d.doc||("n:"+d.nome);
+  DOADOR_N[k]=Math.max(DOADOR_N[k]||0,d.n);
+});
+/* fornecedores de campanha indexados por CNPJ, para cruzar com a cota */
+var CAMPFORN={};
+COM_CAMP.forEach(function(p){
+  ANOS_CAMP.forEach(function(ano){
+    var c=campDe(p,ano); if(!c) return;
+    c.fornecedores.forEach(function(f){
+      if(f.tipo!=="PJ"||!f.doc) return;
+      var cn=f.doc.replace(/\D/g,"");
+      var a=CAMPFORN[cn]||(CAMPFORN[cn]={cnpj:cn,nome:f.nome,total:0,quem:[]});
+      a.total+=f.valor;
+      a.quem.push({id:p.id,ano:ano,valor:f.valor});
+    });
+  });
+});
+/* O CRUZAMENTO: mesmo CNPJ pago pela campanha e depois pago pela cota do mandato.
+   Só conta quando é o MESMO parlamentar dos dois lados — empresa que atendeu
+   candidatos diferentes não fecha circuito nenhum. */
+var VOLTA=(function(){
+  var fidx={}; FORN.forEach(function(f){fidx[f.cnpj]=f;});
+  var out=[];
+  Object.keys(CAMPFORN).forEach(function(cn){
+    var f=fidx[cn]; if(!f) return;
+    var c=CAMPFORN[cn];
+    var porPol={};
+    c.quem.forEach(function(q){ (porPol[q.id]||(porPol[q.id]={camp:0,anos:[]})).camp+=q.valor;
+                                porPol[q.id].anos.push(q.ano); });
+    f.pagantes.forEach(function(g){
+      if(porPol[g.id]) out.push({cnpj:cn,nome:f.nome||c.nome,id:g.id,
+        campanha:porPol[g.id].camp, anos:porPol[g.id].anos.sort().join(", "),
+        cota:g.valor, gabinetes:f.gabinetes});
+    });
+  });
+  return out.sort(function(a,b){return (b.campanha+b.cota)-(a.campanha+a.cota);});
+})();
+
+/* ---------- votações nominais ---------- */
+var VOT=DADOS.votacoes||null;
+var COM_VOTO=PARL.filter(function(p){return p.votos&&p.votos.nominais;});
+var PARL_FONTE={};
+PARL.forEach(function(p){ if(p.id.charAt(0)==="d") PARL_FONTE[String(p.fonte_id)]=p; });
+function presenca(p){ var v=p.votos; return v&&v.nominais?v.presente/v.nominais:0; }
+function fidelidade(p){ var v=p.votos; return v&&v.n_partido?v.c_partido/v.n_partido:0; }
+function pct(x){ return (x*100).toLocaleString("pt-BR",{maximumFractionDigits:1})+"%"; }
+
 el("n-data").textContent=dataBR(DADOS.gerado_em);
 el("rodape-data").textContent="Coleta de "+dataBR(DADOS.gerado_em)+" · "+nf(DADOS.total)
   +" parlamentares, "+nf(DADOS.com_foto)+" com foto oficial, "+nf(NDOCS)+" notas de cota somadas.";
@@ -728,16 +938,16 @@ el("inicio-naoe").innerHTML=NAO_E.map(function(l){
   return '<div><i>&#9888;</i><span><b>'+esc(l[0])+'</b> '+esc(l[1])+'</span></div>';}).join("");
 
 var FALTA=[
- ["Quem financiou a campanha.","Vem da prestação de contas eleitorais do TSE: doador, CPF parcial, valor e data."],
- ["Emendas de autoria e contratos.","Vêm do Portal da Transparência da CGU, que exige um token pessoal gerado com conta gov.br."],
- ["Empresas onde a pessoa é ou foi sócia.","Vem do dump mensal de CNPJ da Receita Federal, com o quadro societário completo."],
- ["Votações nominais.","Estão na mesma API da Câmara, mas exigem percorrer cada votação do plenário — entram na próxima rodada."]
+ ["Empresas onde a pessoa é ou foi sócia.","Vem do dump mensal de CNPJ da Receita Federal, com o quadro societário completo. É o que falta para ligar a empresa à pessoa, e não só ao gabinete."],
+ ["Contratos federais e empresas punidas.","O Portal da Transparência também publica contratos e o cadastro de empresas inidôneas (CEIS). Entram na próxima rodada, com a mesma chave que já trouxe as emendas."],
+ ["A cota dos senadores.","O CEAPS do Senado é publicado noutra base. Enquanto não entrar, a página de cota só tem a Câmara."],
+ ["Nomeações em diários oficiais.","Parentes e aliados nomeados em prefeituras aparecem no Querido Diário, que ainda não está conectado."]
 ];
 el("pl-falta").innerHTML=FALTA.map(function(l){
   return '<div><i>&#9888;</i><span><b>'+esc(l[0])+'</b> '+esc(l[1])+'</span></div>';}).join("");
 
 /* ---------- navegação ---------- */
-var VIEWS=["inicio","parlamentares","patrimonio","cota","ligacoes","composicao","fontes"];
+var VIEWS=["inicio","parlamentares","patrimonio","campanha","votacoes","emendas","cota","ligacoes","composicao","fontes"];
 var current="inicio", sel=null;
 function go(name,opts){
   if(VIEWS.indexOf(name)<0) name="inicio";
@@ -752,6 +962,9 @@ function go(name,opts){
     if(sel) renderFicha(); else renderGrade();
   }
   if(name==="patrimonio") renderPatrimonio();
+  if(name==="campanha") renderCampanha();
+  if(name==="votacoes") renderVotacoes();
+  if(name==="emendas") renderEmendas();
   if(name==="cota") renderCota();
   if(name==="ligacoes") renderLigacoes();
   if(name==="composicao") renderComposicao();
@@ -916,7 +1129,140 @@ function renderFicha(){
     catch(e){ selecionar(); }
   });
   renderPatrBloco(p);
+  renderCampanhaBloco(p);
+  renderEmendaBloco(p);
+  renderVotoBloco(p);
   renderCotaPessoal(p);
+}
+
+/* --- ficha: quem bancou a campanha e para quem a campanha pagou --- */
+function renderCampanhaBloco(p){
+  var alvo=el("pl-campanha");
+  if(!p.campanha){
+    alvo.innerHTML='<div class="sec" style="margin-bottom:18px"><header><h2>Campanha</h2></header>'
+      +'<p class="empty card">Nenhuma prestação de contas eleitoral encontrada no TSE para as eleições de '
+      +ANOS_CAMP.join(" e ")+'.</p></div>';
+    return;
+  }
+  var anos=ANOS_CAMP.filter(function(a){return campDe(p,a);});
+  var ano=anos[anos.length-1], c=campDe(p,ano);
+  var publico=c.fontes.filter(function(f){return ehPublico(f.fonte);})
+    .reduce(function(s,f){return s+f.valor;},0);
+  alvo.innerHTML='<div class="sec" style="margin-bottom:18px">'
+   +'<header><div><h2>Quem financiou a campanha</h2>'
+   +'<small>Prestação de contas da eleição de '+esc(ano)
+   +(anos.length>1?' (também há '+esc(anos.slice(0,-1).join(", "))+')':'')+'</small></div></header>'
+   +'<div class="kpis">'
+     +'<div><b>'+brlCurto(c.total)+'</b><span>arrecadado</span></div>'
+     +'<div><b>'+pct(c.total?publico/c.total:0)+'</b><span>de fundo público</span></div>'
+     +'<div><b class="num">'+nf(c.n_doadores)+'</b><span>doadores</span></div>'
+     +'<div><b>'+brlCurto(c.gasto)+'</b><span>gasto declarado</span></div>'
+     +'<div><b class="num">'+nf(c.n_fornecedores)+'</b><span>empresas contratadas</span></div>'
+   +'</div>'
+   +'<div class="dupla" style="margin-top:14px">'
+     +'<div><p class="eyebrow">Maiores doadores</p><div class="tablewrap"><table>'
+     +'<thead><tr><th>Doador</th><th class="r">Valor</th></tr></thead><tbody>'
+     +c.doadores.slice(0,8).map(function(d){
+        return '<tr><td><button type="button" class="linkbtn" data-doador="'
+          +esc(d.doc||("n:"+d.nome))+'|'+esc(ano)+'">'+esc(d.nome)+'</button>'
+          +'<br><span class="hint mono">'+esc(d.doc||"sem documento")+'</span></td>'
+          +'<td class="r">'+brl(d.valor)+'</td></tr>';
+     }).join("")+'</tbody></table></div></div>'
+     +'<div><p class="eyebrow">Empresas pagas pela campanha</p><div class="tablewrap"><table>'
+     +'<thead><tr><th>Empresa</th><th class="r">Valor</th></tr></thead><tbody>'
+     +c.fornecedores.slice(0,8).map(function(f){
+        var cn=(f.doc||"").replace(/\D/g,"");
+        var naCota=cn&&fornPorCnpj(cn);
+        return '<tr'+(naCota?' class="alerta"':'')+'><td>'+esc(f.nome)
+          +'<br><span class="hint mono">'+esc(f.doc||"sem CNPJ")+'</span>'
+          +(naCota?'<br><span class="chip crit"><i class="dot"></i>também recebeu da cota</span>':'')+'</td>'
+          +'<td class="r">'+brl(f.valor)+'</td></tr>';
+     }).join("")+'</tbody></table></div></div>'
+   +'</div>'
+   +'<p class="hint">Empresa não pode doar para candidato desde 2015. CNPJ na coluna de doadores é partido repassando fundo público. CPF de pessoa física aparece mascarado, como o TSE publica.</p>'
+   +'</div>';
+}
+
+/* --- ficha: emendas de autoria --- */
+function renderEmendaBloco(p){
+  var alvo=el("pl-emendas");
+  if(!p.emendas||!p.emendas.n){
+    alvo.innerHTML='<div class="sec" style="margin-bottom:18px"><header><h2>Emendas de autoria</h2></header>'
+      +'<p class="empty card">Nenhuma emenda em nome desta pessoa entre as '
+      +nf(DADOS.emendas_coletadas||0)+' lidas no Portal da Transparência de '
+      +(ANOS_EMENDA[0]||"")+' a '+(ANOS_EMENDA[ANOS_EMENDA.length-1]||"")+'.</p></div>';
+    return;
+  }
+  var e=p.emendas;
+  alvo.innerHTML='<div class="sec" style="margin-bottom:18px">'
+   +'<header><div><h2>Emendas de autoria</h2><small>Portal da Transparência da CGU · '
+   +esc(ANOS_EMENDA[0])+' a '+esc(ANOS_EMENDA[ANOS_EMENDA.length-1])+'</small></div></header>'
+   +'<div class="kpis">'
+     +'<div><b>'+brlCurto(e.total_empenhado)+'</b><span>empenhado</span></div>'
+     +'<div><b>'+brlCurto(e.total_pago)+'</b><span>efetivamente pago</span></div>'
+     +'<div><b>'+pct(e.total_empenhado?e.total_pago/e.total_empenhado:0)+'</b><span>virou pagamento</span></div>'
+     +'<div><b class="num">'+nf(e.n)+'</b><span>emendas</span></div>'
+   +'</div>'
+   +'<div style="margin-top:14px">'+barraSerie(ANOS_EMENDA.map(function(a){
+       var x=(e.anos||{})[a];
+       return {rot:a,valor:x?x.pago:0};
+     }))+'<p class="hint">Valor pago em cada ano.</p></div>'
+   +'<div class="dupla" style="margin-top:14px">'
+     +'<div><p class="eyebrow">Para onde foi</p><div class="tablewrap"><table>'
+     +'<thead><tr><th>Destino</th><th class="r">Valor</th></tr></thead><tbody>'
+     +(e.locais||[]).slice(0,8).map(function(l){
+        return '<tr><td>'+esc(l.local)+'</td><td class="r">'+brl(l.valor)+'</td></tr>';
+     }).join("")+'</tbody></table></div></div>'
+     +'<div><p class="eyebrow">Em quê</p><div class="tablewrap"><table>'
+     +'<thead><tr><th>Área</th><th class="r">Valor</th></tr></thead><tbody>'
+     +(e.funcoes||[]).slice(0,8).map(function(f){
+        return '<tr><td>'+esc(f.funcao)+'</td><td class="r">'+brl(f.valor)+'</td></tr>';
+     }).join("")+'</tbody></table></div></div>'
+   +'</div></div>';
+}
+
+/* --- ficha: como votou --- */
+function renderVotoBloco(p){
+  var alvo=el("pl-votos");
+  if(!p.votos||!p.votos.nominais){
+    alvo.innerHTML='<div class="sec" style="margin-bottom:18px"><header><h2>Votações nominais</h2></header>'
+      +'<p class="empty card">'+(p.id.charAt(0)==="s"
+        ? 'A base de votação nominal usada aqui é a da Câmara dos Deputados. O Senado publica as votações noutro serviço, ainda não conectado.'
+        : 'Nenhum voto nominal registrado no período coletado.')+'</p></div>';
+    return;
+  }
+  var v=p.votos, t=v.sim+v.nao+v.outros||1;
+  var meus=(VOT?VOT.recentes:[]).map(function(x,i){
+    return {i:i,v:x,voto:x.votos[String(p.fonte_id)]};
+  }).filter(function(x){return x.voto;}).slice(0,10);
+  alvo.innerHTML='<div class="sec" style="margin-bottom:18px">'
+   +'<header><div><h2>Votações nominais</h2><small>Plenário da Câmara, '
+   +esc(VOT?VOT.periodo[0]:"")+' em diante</small></div></header>'
+   +'<div class="kpis">'
+     +'<div><b>'+pct(presenca(p))+'</b><span>presença</span></div>'
+     +'<div><b>'+pct(fidelidade(p))+'</b><span>fidelidade ao partido</span></div>'
+     +'<div><b class="num">'+nf(v.presente)+'</b><span>votos dados</span></div>'
+     +'<div><b class="num">'+nf(v.nominais-v.presente)+'</b><span>ausências</span></div>'
+     +'<div><b>'+pct(v.n_partido?1-v.c_partido/v.n_partido:0)+'</b><span>votou contra a bancada</span></div>'
+   +'</div>'
+   +'<div style="margin-top:12px"><span class="pilha" style="height:9px">'
+     +'<i class="ok" style="width:'+(v.sim/t*100).toFixed(1)+'%"></i>'
+     +'<i class="crit" style="width:'+(v.nao/t*100).toFixed(1)+'%"></i>'
+     +'<i class="warn" style="width:'+(v.outros/t*100).toFixed(1)+'%"></i></span>'
+   +'<p class="hint">'+nf(v.sim)+' Sim · '+nf(v.nao)+' Não · '+nf(v.outros)+' abstenção ou obstrução. '
+   +'A presença conta as '+nf(v.nominais)+' votações que houve entre a primeira e a última vez que votou'
+   +(v.estreia?', de '+dataBR(v.estreia)+' em diante':'')+'.</p></div>'
+   +(meus.length?'<div style="margin-top:12px"><p class="eyebrow" style="margin-bottom:9px">Como votou nas últimas</p>'
+     +'<div class="tablewrap"><table><thead><tr><th>Votação</th><th>Data</th><th>Voto</th><th>Resultado</th></tr></thead><tbody>'
+     +meus.map(function(x){
+        return '<tr><td><button type="button" class="linkbtn" data-votacao="'+x.i+'">'
+          +esc(x.v.descricao||"Votação")+'</button></td>'
+          +'<td class="mono">'+dataBR(x.v.data)+'</td>'
+          +'<td><span class="chip '+corVoto(x.voto)+'"><i class="dot"></i>'+esc(x.voto)+'</span></td>'
+          +'<td><span class="chip '+(x.v.aprovacao===1?"ok":"crit")+'">'
+          +(x.v.aprovacao===1?"aprovado":"rejeitado")+'</span></td></tr>';
+     }).join("")+'</tbody></table></div></div>':'')
+   +'</div>';
 }
 
 function renderCotaPessoal(p){
@@ -1249,8 +1595,12 @@ var LENTES=[
   legenda:"Em que a cota deste gabinete foi gasta, pela classificação da própria Câmara."},
  {id:"bens",nome:"Composição do patrimônio",centro:"pol",
   legenda:"De que é feito o patrimônio declarado ao TSE. Esta lente ignora o seletor de período: ela segue o calendário das eleições."},
- {id:"emenda",nome:"Emendas de autoria",centro:"pol",bloqueada:true,
-  legenda:"Emenda de autoria vem do Portal da Transparência da CGU, que exige um token pessoal gerado com conta gov.br. Enquanto esse token não existir, esta lente fica vazia — e inventar número aqui não é opção."}
+ {id:"doador",nome:"Quem financiou a campanha",centro:"pol",
+  legenda:"Cada satélite é um doador da última campanha. Empresa não pode doar para candidato desde 2015: o que aparece como CNPJ aqui é partido repassando fundo público. O quadrado marca quantos parlamentares esse mesmo doador financiou."},
+ {id:"campforn",nome:"Empresas pagas pela campanha",centro:"pol",
+  legenda:"Cada satélite é uma empresa contratada pela campanha eleitoral. Quando a mesma empresa também recebeu da cota do mandato, o nó fica em vermelho — é o dinheiro dando a volta."},
+ {id:"emenda",nome:"Emendas de autoria",centro:"pol",
+  legenda:"Para onde foi a emenda: cada satélite é um município ou órgão que recebeu, pelo valor efetivamente pago. Dado do Portal da Transparência da CGU."}
 ];
 var lente="forn", foco=null, trilha=[], lgEmp=null, lgPol=null, aberto={}, aba="pol", PERIODO="all";
 function lenteAtual(){return LENTES.filter(function(x){return x.id===lente;})[0];}
@@ -1311,6 +1661,33 @@ function satelites(){
       return {tipo:"leaf",nome:t.tipo,valor:t.valor};
     });
   }
+  if(L.id==="doador"){
+    var p5=parlPorId(foco.id), c5=p5&&campDe(p5,ANOS_CAMP[ANOS_CAMP.length-1]);
+    if(!c5) return [];
+    return c5.doadores.slice(0,n).map(function(d){
+      var quantos=DOADOR_N[(d.doc||("n:"+d.nome))]||1;
+      return {tipo:"leaf",nome:d.nome,sub:d.doc,marca:String(quantos),valor:d.valor,doador:d};
+    });
+  }
+  if(L.id==="campforn"){
+    var p6=parlPorId(foco.id), c6=p6&&campDe(p6,ANOS_CAMP[ANOS_CAMP.length-1]);
+    if(!c6) return [];
+    return c6.fornecedores.slice(0,n).map(function(f){
+      var cn=(f.doc||"").replace(/\D/g,"");
+      var naCota=cn&&fornPorCnpj(cn);
+      /* tipo "emp" quando a empresa também está na cota: dá para clicar e seguir */
+      return naCota
+        ? {tipo:"emp",id:cn,nome:f.nome,sub:f.doc,marca:"↺",valor:f.valor,volta:true}
+        : {tipo:"leaf",nome:f.nome,sub:f.doc,valor:f.valor};
+    });
+  }
+  if(L.id==="emenda"){
+    var p7=parlPorId(foco.id);
+    if(!p7||!p7.emendas) return [];
+    return (p7.emendas.locais||[]).slice(0,n).map(function(l){
+      return {tipo:"leaf",nome:l.local,valor:l.valor};
+    }).filter(function(s){return s.valor>0;});
+  }
   return [];
 }
 function centroInfo(){
@@ -1329,7 +1706,14 @@ function centroInfo(){
   var chips=[[p.cargo+" · "+p.partido+"/"+p.uf,""]];
   if(p.cota) chips.push([brl(c)+" de cota "+rotuloPeriodo(),"warn"]);
   if(s) chips.push([brlCurto(s[s.length-1].valor)+" declarados em "+s[s.length-1].ano,""]);
-  var total=L.id==="bens"&&s?s[s.length-1].valor:c;
+  var ultC=campDe(p,ANOS_CAMP[ANOS_CAMP.length-1]);
+  if(ultC) chips.push([brlCurto(ultC.total)+" arrecadados na campanha",""]);
+  if(p.emendas) chips.push([brlCurto(p.emendas.total_pago)+" em emendas pagas","ml"]);
+  var total=c;
+  if(L.id==="bens"&&s) total=s[s.length-1].valor;
+  else if(L.id==="doador") total=ultC?ultC.total:0;
+  else if(L.id==="campforn") total=ultC?ultC.gasto:0;
+  else if(L.id==="emenda") total=p.emendas?p.emendas.total_pago:0;
   return {nome:p.nome,sub:p.cargo+" · "+p.partido+"/"+p.uf,total:total,parl:p,chips:chips};
 }
 
@@ -1756,6 +2140,132 @@ function detCategoria(tipo,polId){
      +'<p class="hint" style="margin-top:9px">Entre os gabinetes em que esta categoria está no topo do próprio gasto.</p></div>';
 }
 
+/* detalhe de uma votação: placar, posição de cada bancada e quem votou o quê */
+function detVotacao(i){
+  var v=VOT&&VOT.recentes[i]; if(!v) return "";
+  var porPart={};
+  Object.keys(v.votos).forEach(function(fid){
+    var p=PARL_FONTE[fid]; if(!p) return;
+    var a=porPart[p.partido]||(porPart[p.partido]={sim:0,nao:0,outros:0});
+    var t=v.votos[fid];
+    if(t==="Sim") a.sim++; else if(t==="Não") a.nao++; else a.outros++;
+  });
+  var lp=Object.keys(porPart).map(function(k){
+    var a=porPart[k]; a.sigla=k; a.total=a.sim+a.nao+a.outros; return a;
+  }).sort(function(a,b){return b.total-a.total;});
+  var t=v.sim+v.nao+v.outros||1;
+  var quem=Object.keys(v.votos).map(function(fid){
+    return {p:PARL_FONTE[fid],voto:v.votos[fid]};
+  }).filter(function(x){return x.p;})
+    .sort(function(a,b){return a.voto.localeCompare(b.voto)||a.p.nome.localeCompare(b.p.nome,"pt-BR");});
+
+  return cabModal(v.descricao||"Votação",
+      '<span class="mono">'+dataBR(v.data)+'</span> · '+(v.aprovacao===1?"aprovado":"rejeitado"))
+   +'<div class="kpis" style="border:0;padding:0">'
+     +'<div><b class="num">'+nf(v.sim)+'</b><span>votaram Sim</span></div>'
+     +'<div><b class="num">'+nf(v.nao)+'</b><span>votaram Não</span></div>'
+     +'<div><b class="num">'+nf(v.outros)+'</b><span>abstenção ou obstrução</span></div>'
+     +'<div><b class="num">'+nf(t)+'</b><span>votos registrados</span></div>'
+   +'</div>'
+   +'<div><p class="eyebrow" style="margin:14px 0 9px">Como cada bancada votou</p>'
+   +'<div class="tablewrap"><table><thead><tr><th>Partido</th><th class="r">Sim</th><th class="r">Não</th>'
+   +'<th class="r">Outros</th><th>Divisão</th></tr></thead><tbody>'
+   +lp.map(function(a){
+      return '<tr><td class="mono">'+esc(a.sigla)+'</td><td class="r">'+nf(a.sim)+'</td>'
+        +'<td class="r">'+nf(a.nao)+'</td><td class="r">'+nf(a.outros)+'</td>'
+        +'<td><span class="pilha"><i class="ok" style="width:'+(a.sim/a.total*100).toFixed(1)+'%"></i>'
+        +'<i class="crit" style="width:'+(a.nao/a.total*100).toFixed(1)+'%"></i>'
+        +'<i class="warn" style="width:'+(a.outros/a.total*100).toFixed(1)+'%"></i></span></td></tr>';
+   }).join("")+'</tbody></table></div></div>'
+   +'<div><p class="eyebrow" style="margin:14px 0 9px">Voto a voto</p>'
+   +'<div class="tablewrap" style="max-height:360px;overflow-y:auto"><table><thead><tr><th>Deputado</th>'
+   +'<th>Partido/UF</th><th>Voto</th></tr></thead><tbody>'
+   +quem.map(function(x){
+      return '<tr><td>'+linhaParl(x.p)+'</td><td class="mono">'+esc(x.p.partido)+'/'+esc(x.p.uf)+'</td>'
+        +'<td><span class="chip '+corVoto(x.voto)+'"><i class="dot"></i>'+esc(x.voto)+'</span></td></tr>';
+   }).join("")+'</tbody></table></div></div>';
+}
+
+/* detalhe de uma empresa contratada pela campanha */
+function detCampForn(s,pid){
+  var p=parlPorId(pid), cn=(s.sub||"").replace(/\D/g,"");
+  var naCota=cn&&fornPorCnpj(cn);
+  var c=CAMPFORN[cn];
+  return cabModal(s.nome,'<span class="mono">'+esc(s.sub||"sem CNPJ")+'</span> · contratada pela campanha')
+   +'<div class="kpis" style="border:0;padding:0">'
+     +'<div><b>'+brlCurto(s.valor)+'</b><span>pago pela campanha'+(p?" de "+esc(p.nome):"")+'</span></div>'
+     +(c?'<div><b class="num">'+nf(c.quem.length)+'</b><span>campanhas que a contrataram</span></div>':'')
+     +(naCota?'<div><b>'+brlCurto(naCota.valor)+'</b><span>recebido da cota parlamentar</span></div>':'')
+   +'</div>'
+   +(naCota
+     ?'<p class="naoe" style="margin-top:14px"><b>Mesma empresa nos dois lados.</b> Ela foi paga pela campanha eleitoral e, já no mandato, recebeu da cota parlamentar — '
+       +nf(naCota.gabinetes)+' gabinete(s) no total. Isso não é irregularidade por si só: pode ser a gráfica de sempre. É onde a checagem começa.</p>'
+       +'<div class="acoes2"><button type="button" class="btn sim" data-centrar="emp:'+esc(cn)+'">Abrir a teia nesta empresa</button></div>'
+     :'<p class="hint" style="margin-top:14px">Esta empresa não aparece entre os 10 maiores fornecedores de nenhum gabinete na cota parlamentar.</p>');
+}
+
+/* detalhe de um destino de emenda */
+function detDestino(local,pid){
+  var p=parlPorId(pid); if(!p||!p.emendas) return "";
+  var lista=(p.emendas.lista||[]).filter(function(e){return e.local===local;});
+  var tot=(p.emendas.locais||[]).filter(function(l){return l.local===local;})[0];
+  var outros=COM_EMENDA.filter(function(q){
+    return q.id!==pid&&(q.emendas.locais||[]).some(function(l){return l.local===local;});
+  }).map(function(q){
+    var l=(q.emendas.locais||[]).filter(function(x){return x.local===local;})[0];
+    return {p:q,valor:l.valor};
+  }).sort(function(a,b){return b.valor-a.valor;}).slice(0,8);
+
+  return cabModal(local,'destino de emenda de '+esc(p.nome))
+   +'<div class="kpis" style="border:0;padding:0">'
+     +'<div><b>'+brlCurto(tot?tot.valor:0)+'</b><span>enviado por '+esc(p.nome)+'</span></div>'
+     +'<div><b class="num">'+nf(lista.length)+'</b><span>emendas detalhadas abaixo</span></div>'
+     +'<div><b class="num">'+nf(outros.length)+'</b><span>outros parlamentares mandaram para cá</span></div>'
+   +'</div>'
+   +(lista.length?'<div><p class="eyebrow" style="margin:14px 0 9px">As emendas</p>'
+     +'<div class="tablewrap"><table><thead><tr><th>Ano</th><th>Área</th><th>Tipo</th>'
+     +'<th class="r">Empenhado</th><th class="r">Pago</th></tr></thead><tbody>'
+     +lista.map(function(e){
+       return '<tr><td class="mono">'+esc(e.ano)+'</td><td>'+esc(e.funcao||"—")
+         +(e.subfuncao?'<br><span class="hint">'+esc(e.subfuncao)+'</span>':'')+'</td>'
+         +'<td><span class="chip">'+esc(e.tipo||"—")+'</span></td>'
+         +'<td class="r">'+brl(e.empenhado)+'</td><td class="r">'+brl(e.pago)+'</td></tr>';
+     }).join("")+'</tbody></table></div></div>':'')
+   +(outros.length?'<div><p class="eyebrow" style="margin:14px 0 9px">Quem mais mandou dinheiro para cá</p>'
+     +'<div class="tablewrap"><table><thead><tr><th>Parlamentar</th><th>Partido/UF</th>'
+     +'<th class="r">Valor</th></tr></thead><tbody>'
+     +outros.map(function(x){
+       return '<tr><td>'+linhaParl(x.p)+'</td><td class="mono">'+esc(x.p.partido)+'/'+esc(x.p.uf)+'</td>'
+         +'<td class="r">'+brl(x.valor)+'</td></tr>';
+     }).join("")+'</tbody></table></div></div>':'');
+}
+
+/* detalhe de um doador: para quem ele deu dinheiro */
+function detDoador(chave){
+  var pos=chave.lastIndexOf("|");
+  var k=chave.slice(0,pos), ano=chave.slice(pos+1);
+  var d=DOADORES.filter(function(x){return (x.doc||("n:"+x.nome))===k&&x.ano===ano;})[0];
+  if(!d) return "";
+  var naCota=d.doc?fornPorCnpj(d.doc.replace(/\D/g,"")):null;
+  return cabModal(d.nome,'<span class="mono">'+esc(d.doc||"sem documento")+'</span> · eleição de '+esc(ano))
+   +'<div class="kpis" style="border:0;padding:0">'
+     +'<div><b>'+brlCurto(d.valor)+'</b><span>doado nesta eleição</span></div>'
+     +'<div><b class="num">'+nf(d.n)+'</b><span>parlamentares financiados</span></div>'
+     +'<div><b>'+esc(d.tipo==="PJ"?"empresa/partido":"pessoa física")+'</b><span>natureza do doador</span></div>'
+   +'</div>'
+   +(naCota?'<p class="naoe" style="margin-top:14px"><b>Este mesmo CNPJ recebeu '
+      +brl(naCota.valor)+' da cota parlamentar</b>, de '+nf(naCota.gabinetes)
+      +' gabinete(s). Doação e nota fiscal com o mesmo documento é o ponto de partida de qualquer checagem.</p>':'')
+   +'<div><p class="eyebrow" style="margin:14px 0 9px">Para quem doou</p>'
+   +'<div class="tablewrap"><table><thead><tr><th>Parlamentar</th><th>Partido/UF</th>'
+   +'<th class="r">Recebeu</th></tr></thead><tbody>'
+   +d.quem.slice(0,30).map(function(q){
+      var p=parlPorId(q.id); if(!p) return "";
+      return '<tr><td>'+linhaParl(p)+'</td><td class="mono">'+esc(p.partido)+'/'+esc(p.uf)+'</td>'
+        +'<td class="r">'+brl(q.valor)+'</td></tr>';
+   }).join("")+'</tbody></table></div></div>';
+}
+
 function abrirDetalhe(html){
   if(!html) return;
   focoAnterior=document.activeElement;
@@ -1772,6 +2282,10 @@ function fecharDetalhe(){
 document.addEventListener("click",function(e){
   if(e.target.closest("#dt-fechar")){fecharDetalhe();return;}
   if(e.target.id==="dt-overlay"){fecharDetalhe();return;}
+  var vv=e.target.closest("[data-votacao]");
+  if(vv){ abrirDetalhe(detVotacao(+vv.dataset.votacao)); return; }
+  var dd=e.target.closest("[data-doador]");
+  if(dd){ abrirDetalhe(detDoador(dd.dataset.doador)); return; }
   var c=e.target.closest("[data-centrar]");
   if(c){
     var parte=c.dataset.centrar, tipo=parte.slice(0,parte.indexOf(":")), id=parte.slice(parte.indexOf(":")+1);
@@ -1788,6 +2302,9 @@ document.addEventListener("click",function(e){
       if(s.tipo==="emp") abrirDetalhe(detEmpresa(s.id));
       else if(s.tipo==="pol") abrirDetalhe(detParlamentar(s.id));
       else if(lente==="bens") abrirDetalhe(detBem(s.nome,foco.id));
+      else if(lente==="doador") abrirDetalhe(detDoador((s.doador.doc||("n:"+s.doador.nome))+"|"+ANOS_CAMP[ANOS_CAMP.length-1]));
+      else if(lente==="campforn") abrirDetalhe(detCampForn(s,foco.id));
+      else if(lente==="emenda") abrirDetalhe(detDestino(s.nome,foco.id));
       else abrirDetalhe(detCategoria(s.nome,foco.id));
     }
     return;
@@ -1856,6 +2373,287 @@ function renderArvore(){
 
 /* (os eventos da teia estao definidos uma unica vez, mais acima) */
 
+/* ---------- campanha: quem bancou a eleição ---------- */
+function linhaParl(p,extra){
+  return '<span style="display:flex;align-items:center;gap:10px">'+foto(p,"sm")
+    +'<button type="button" class="linkbtn" data-pid="'+esc(p.id)+'">'+esc(p.nome)+'</button>'
+    +(extra||"")+'</span>';
+}
+function renderCampanha(){
+  var ult=ANOS_CAMP[ANOS_CAMP.length-1];
+  var soma=0, publico=0, privado=0, proprio=0, ndoa=0;
+  COM_CAMP.forEach(function(p){
+    var c=campDe(p,ult); if(!c) return;
+    soma+=c.total; ndoa+=c.n_doacoes;
+    c.fontes.forEach(function(f){
+      if(ehPublico(f.fonte)) publico+=f.valor;
+      else if((f.fonte||"").toLowerCase().indexOf("próprio")>=0) proprio+=f.valor;
+      else privado+=f.valor;
+    });
+  });
+  var comUlt=COM_CAMP.filter(function(p){return campDe(p,ult);}).length;
+  el("cp-stats").innerHTML=
+    '<div><b>'+brlCurto(soma)+'</b><span>declarado na eleição de '+ult+'</span></div>'
+   +'<div><b>'+pct(soma?publico/soma:0)+'</b><span>veio de fundo público</span></div>'
+   +'<div><b class="num">'+nf(ndoa)+'</b><span>doações registradas</span></div>'
+   +'<div><b class="num">'+nf(comUlt)+'</b><span>com prestação de contas</span></div>'
+   +'<div><b class="num">'+nf(VOLTA.length)+'</b><span>empresas que deram a volta</span></div>';
+
+  el("cp-fonte-sub").textContent="Eleição de "+ult+", somando os "+nf(comUlt)+" parlamentares que prestaram contas";
+  var fontes={};
+  COM_CAMP.forEach(function(p){
+    var c=campDe(p,ult); if(!c) return;
+    c.fontes.forEach(function(f){ fontes[f.fonte||"Outras"]=(fontes[f.fonte||"Outras"]||0)+f.valor; });
+  });
+  var lf=Object.keys(fontes).map(function(k){return {fonte:k,valor:fontes[k]};})
+    .sort(function(a,b){return b.valor-a.valor;});
+  var maiorF=lf.length?lf[0].valor:1;
+  el("cp-fontes").innerHTML='<thead><tr><th>Origem do dinheiro</th><th>Natureza</th>'
+    +'<th class="r">Valor</th><th>Relativo</th><th class="r">% do total</th></tr></thead><tbody>'
+    +lf.map(function(f){
+      return '<tr><td>'+esc(f.fonte)+'</td>'
+        +'<td><span class="chip '+(ehPublico(f.fonte)?"crit":"")+'">'
+          +(ehPublico(f.fonte)?'<i class="dot"></i>público':'privado')+'</span></td>'
+        +'<td class="r">'+brl(f.valor)+'</td>'
+        +'<td><span class="barra" style="display:block"><i style="width:'+(f.valor/maiorF*100).toFixed(1)+'%"></i></span></td>'
+        +'<td class="r">'+pct(soma?f.valor/soma:0)+'</td></tr>';
+    }).join("")+'</tbody>';
+
+  /* o dinheiro que deu a volta */
+  var qv=el("cp-qv").value;
+  var volta=VOLTA.filter(function(x){
+    var p=parlPorId(x.id);
+    return casaBusca(qv,x.nome+" "+x.cnpj+" "+(p?p.nome+" "+p.partido+" "+p.uf:""));
+  });
+  el("cp-volta-achou").textContent=semAcento(qv).trim()
+    ? nf(volta.length)+(volta.length===1?" cruzamento encontrado":" cruzamentos encontrados") : "";
+  el("cp-volta").innerHTML=volta.length
+    ?'<thead><tr><th>Empresa</th><th>CNPJ</th><th>Parlamentar</th>'
+    +'<th class="r">Recebeu da campanha</th><th class="r">Recebeu da cota</th><th class="r">Soma</th></tr></thead><tbody>'
+    +volta.slice(0,60).map(function(x){
+      var p=parlPorId(x.id);
+      return '<tr class="alerta"><td>'+esc(x.nome||"—")+'<br><span class="hint">campanha de '+esc(x.anos)+'</span></td>'
+        +'<td class="mono">'+cnpjFmt(x.cnpj)+'</td>'
+        +'<td>'+(p?linhaParl(p):esc(x.id))+'</td>'
+        +'<td class="r">'+brl(x.campanha)+'</td>'
+        +'<td class="r">'+brl(x.cota)+'</td>'
+        +'<td class="r"><b>'+brl(x.campanha+x.cota)+'</b></td></tr>';
+    }).join("")+'</tbody>'
+    :'<tbody><tr><td class="empty">'+(semAcento(qv).trim()
+        ?'Nenhum cruzamento corresponde a essa busca.'
+        :'Nenhuma empresa aparece nos dois lados.')+'</td></tr></tbody>';
+
+  /* maiores doadores */
+  var ano=el("cp-ano").value||ult, qd=el("cp-qd").value;
+  var doa=DOADORES.filter(function(d){return d.ano===ano&&casaBusca(qd,d.nome+" "+(d.doc||""));});
+  el("cp-doa-sub").textContent="Eleição de "+ano;
+  el("cp-doa-achou").textContent=semAcento(qd).trim()
+    ? nf(doa.length)+(doa.length===1?" doador encontrado":" doadores encontrados") : "";
+  el("cp-doadores").innerHTML=doa.length
+    ?'<thead><tr><th class="r">#</th><th>Doador</th><th>Documento</th><th>Tipo</th>'
+    +'<th class="r">Doou</th><th class="r">Para quantos</th></tr></thead><tbody>'
+    +doa.slice(0,40).map(function(d,i){
+      return '<tr><td class="r">'+(i+1)+'</td>'
+        +'<td><button type="button" class="linkbtn" data-doador="'+esc(d.doc||("n:"+d.nome))+'|'+esc(d.ano)+'">'+esc(d.nome)+'</button>'
+        +'<br><span class="hint">'+esc(d.fonte||"")+'</span></td>'
+        +'<td class="mono">'+esc(d.doc||"—")+'</td>'
+        +'<td><span class="chip">'+(d.tipo==="PJ"?"empresa ou partido":"pessoa física")+'</span></td>'
+        +'<td class="r">'+brl(d.valor)+'</td>'
+        +'<td class="r">'+nf(d.n)+'</td></tr>';
+    }).join("")+'</tbody>'
+    :'<tbody><tr><td class="empty">Nenhum doador corresponde a essa busca nesta eleição.</td></tr></tbody>';
+
+  /* quem mais arrecadou */
+  var qr=el("cp-qr").value;
+  var todos=COM_CAMP.filter(function(p){return campDe(p,ano);})
+    .sort(function(a,b){return campTotal(b,ano)-campTotal(a,ano);});
+  var rank=todos.map(function(p,i){return {p:p,pos:i+1};})
+    .filter(function(x){return casaBusca(qr,x.p.nome+" "+(x.p.nome_civil||"")+" "+x.p.partido+" "+x.p.uf);});
+  el("cp-rank-sub").textContent="Eleição de "+ano+" — "+nf(todos.length)+" com prestação de contas";
+  el("cp-rank-achou").textContent=semAcento(qr).trim()
+    ? nf(rank.length)+(rank.length===1?" encontrado":" encontrados") : "";
+  var maiorR=todos.length?campTotal(todos[0],ano):1;
+  el("cp-rank").innerHTML=rank.length
+    ?'<thead><tr><th class="r">#</th><th>Parlamentar</th><th>Partido/UF</th>'
+    +'<th class="r">Arrecadou</th><th>Relativo</th><th class="r">Doadores</th></tr></thead><tbody>'
+    +rank.slice(0,40).map(function(x){
+      var p=x.p, c=campDe(p,ano);
+      return '<tr><td class="r">'+x.pos+'</td><td>'+linhaParl(p)+'</td>'
+        +'<td class="mono">'+esc(p.partido)+'/'+esc(p.uf)+'</td>'
+        +'<td class="r">'+brl(c.total)+'</td>'
+        +'<td><span class="barra" style="display:block"><i style="width:'+(c.total/maiorR*100).toFixed(1)+'%"></i></span></td>'
+        +'<td class="r">'+nf(c.n_doadores)+'</td></tr>';
+    }).join("")+'</tbody>'
+    :'<tbody><tr><td class="empty">Ninguém corresponde a essa busca nesta eleição.</td></tr></tbody>';
+}
+
+/* ---------- votações nominais ---------- */
+function corVoto(v){
+  return v==="Sim"?"ok":v==="Não"?"crit":"warn";
+}
+function renderVotacoes(){
+  if(!VOT){ el("vt-stats").innerHTML='<div><b>—</b><span>sem dados de votação</span></div>'; return; }
+  var presMedia=COM_VOTO.reduce(function(s,p){return s+presenca(p);},0)/(COM_VOTO.length||1);
+  var fidMedia=COM_VOTO.reduce(function(s,p){return s+fidelidade(p);},0)/(COM_VOTO.length||1);
+  el("vt-stats").innerHTML=
+    '<div><b class="num">'+nf(VOT.total_nominais)+'</b><span>votações nominais desde '+VOT.periodo[0]+'</span></div>'
+   +'<div><b class="num">'+nf(VOT.total_plenario)+'</b><span>votações do plenário no total</span></div>'
+   +'<div><b>'+pct(presMedia)+'</b><span>presença média</span></div>'
+   +'<div><b>'+pct(fidMedia)+'</b><span>fidelidade média ao partido</span></div>'
+   +'<div><b class="num">'+nf(COM_VOTO.length)+'</b><span>deputados com voto registrado</span></div>';
+
+  if(!el("vt-partido").dataset.pronto){
+    var ps={}; COM_VOTO.forEach(function(p){ps[p.partido]=1;});
+    el("vt-partido").innerHTML='<option value="">Todos</option>'
+      +Object.keys(ps).sort().map(function(s){return '<option>'+esc(s)+'</option>';}).join("");
+    el("vt-partido").dataset.pronto="1";
+  }
+
+  var ord=el("vt-ord").value, part=el("vt-partido").value, q=el("vt-q").value;
+  var base=COM_VOTO.filter(function(p){return !part||p.partido===part;});
+  /* quem votou meia dúzia de vezes não pode liderar um ranking de porcentagem:
+     3 votos acertados viram 100% e empurram para baixo quem votou 900 vezes */
+  var MIN=50, porcento=(ord==="fid"||ord==="infid"||ord==="pres"||ord==="aus");
+  if(porcento) base=base.filter(function(p){return p.votos.presente>=MIN;});
+  var lista=base.slice();
+  /* empate em porcentagem desempata por quem votou mais vezes: 100% em 60 votos
+     não vale o mesmo que 100% em 900 */
+  function maisVotos(a,b){ return b.votos.presente-a.votos.presente; }
+  if(ord==="infid") lista.sort(function(a,b){return fidelidade(a)-fidelidade(b)||maisVotos(a,b);});
+  else if(ord==="pres") lista.sort(function(a,b){return presenca(b)-presenca(a)||maisVotos(a,b);});
+  else if(ord==="aus") lista.sort(function(a,b){return presenca(a)-presenca(b)||maisVotos(a,b);});
+  else if(ord==="votos") lista.sort(maisVotos);
+  else lista.sort(function(a,b){return fidelidade(b)-fidelidade(a)||maisVotos(a,b);});
+
+  var rank=lista.map(function(p,i){return {p:p,pos:i+1};})
+    .filter(function(x){return casaBusca(q,x.p.nome+" "+(x.p.nome_civil||"")+" "+x.p.partido+" "+x.p.uf);});
+  el("vt-rank-sub").textContent=nf(base.length)+" deputados"+(part?" do "+part:"")
+    +(porcento?" com pelo menos "+MIN+" votos registrados":"")
+    +" — senadores não entram: a base de votação nominal é da Câmara";
+  el("vt-rank-achou").textContent=semAcento(q).trim()
+    ? nf(rank.length)+(rank.length===1?" encontrado":" encontrados") : "";
+  el("vt-rank").innerHTML=rank.length
+    ?'<thead><tr><th class="r">#</th><th>Deputado</th><th>Partido/UF</th><th class="r">Votou em</th>'
+    +'<th class="r">Presença</th><th class="r">Fidelidade</th><th>Como votou</th></tr></thead><tbody>'
+    +rank.slice(0,40).map(function(x){
+      var p=x.p, v=p.votos, t=v.sim+v.nao+v.outros||1;
+      return '<tr><td class="r">'+x.pos+'</td><td>'+linhaParl(p)+'</td>'
+        +'<td class="mono">'+esc(p.partido)+'/'+esc(p.uf)+'</td>'
+        +'<td class="r">'+nf(v.presente)+'<span class="hint"> de '+nf(v.nominais)+'</span></td>'
+        +'<td class="r">'+pct(presenca(p))+'</td>'
+        +'<td class="r">'+pct(fidelidade(p))+'</td>'
+        +'<td><span class="pilha" title="'+nf(v.sim)+' Sim, '+nf(v.nao)+' Não, '+nf(v.outros)+' outros">'
+          +'<i class="ok" style="width:'+(v.sim/t*100).toFixed(1)+'%"></i>'
+          +'<i class="crit" style="width:'+(v.nao/t*100).toFixed(1)+'%"></i>'
+          +'<i class="warn" style="width:'+(v.outros/t*100).toFixed(1)+'%"></i></span></td></tr>';
+    }).join("")+'</tbody>'
+    :'<tbody><tr><td class="empty">Nenhum deputado corresponde a essa busca.</td></tr></tbody>';
+
+  el("vt-recentes-sub").textContent="As "+nf(VOT.recentes.length)+" mais recentes, voto a voto";
+  el("vt-recentes").innerHTML=VOT.recentes.map(function(v,i){
+    var t=v.sim+v.nao+v.outros||1;
+    return '<button type="button" class="vtitem" data-votacao="'+i+'">'
+      +'<span class="vtcab"><b>'+esc(v.descricao||"Votação")+'</b>'
+      +'<span class="chip '+(v.aprovacao===1?"ok":"crit")+'"><i class="dot"></i>'
+      +(v.aprovacao===1?"aprovado":"rejeitado")+'</span></span>'
+      +'<span class="vtpe"><span class="mono">'+dataBR(v.data)+'</span>'
+      +'<span class="mono">Sim '+nf(v.sim)+' · Não '+nf(v.nao)+' · outros '+nf(v.outros)+'</span></span>'
+      +'<span class="pilha"><i class="ok" style="width:'+(v.sim/t*100).toFixed(1)+'%"></i>'
+      +'<i class="crit" style="width:'+(v.nao/t*100).toFixed(1)+'%"></i>'
+      +'<i class="warn" style="width:'+(v.outros/t*100).toFixed(1)+'%"></i></span></button>';
+  }).join("");
+}
+["vt-ord","vt-partido"].forEach(function(id){el(id).addEventListener("change",renderVotacoes);});
+el("vt-q").addEventListener("input",renderVotacoes);
+el("cp-qv").addEventListener("input",renderCampanha);
+el("cp-qd").addEventListener("input",renderCampanha);
+el("cp-qr").addEventListener("input",renderCampanha);
+el("cp-ano").addEventListener("change",renderCampanha);
+(function montaAnosCampanha(){
+  el("cp-ano").innerHTML=ANOS_CAMP.map(function(a){
+    return '<option value="'+a+'"'+(a===ANOS_CAMP[ANOS_CAMP.length-1]?" selected":"")+'>'+a+'</option>';
+  }).join("");
+})();
+
+/* ---------- emendas de autoria ---------- */
+var COM_EMENDA=PARL.filter(function(p){return p.emendas&&p.emendas.n;});
+var ANOS_EMENDA=(DADOS.emendas_anos||[]).map(String);
+function emValor(p,ano,campo){
+  var e=p.emendas; if(!e) return 0;
+  if(!ano) return campo==="pago"?e.total_pago:e.total_empenhado;
+  var a=(e.anos||{})[ano]; return a?(campo==="pago"?a.pago:a.empenhado):0;
+}
+function emN(p,ano){
+  var e=p.emendas; if(!e) return 0;
+  if(!ano) return e.n;
+  var a=(e.anos||{})[ano]; return a?a.n:0;
+}
+function renderEmendas(){
+  if(!COM_EMENDA.length){ el("em-stats").innerHTML='<div><b>—</b><span>sem emendas coletadas</span></div>'; return; }
+  if(!el("em-ano").dataset.pronto){
+    el("em-ano").innerHTML='<option value="">Todos os anos</option>'
+      +ANOS_EMENDA.map(function(a){return '<option value="'+a+'">Só '+a+'</option>';}).join("");
+    el("em-ano").dataset.pronto="1";
+  }
+  var ano=el("em-ano").value, ord=el("em-ord").value, q=el("em-q").value;
+  var emp=0, pago=0, n=0;
+  COM_EMENDA.forEach(function(p){ emp+=emValor(p,ano,"emp"); pago+=emValor(p,ano,"pago"); n+=emN(p,ano); });
+  el("em-stats").innerHTML=
+    '<div><b>'+brlCurto(emp)+'</b><span>empenhado '+(ano?"em "+ano:"desde "+ANOS_EMENDA[0])+'</span></div>'
+   +'<div><b>'+brlCurto(pago)+'</b><span>efetivamente pago</span></div>'
+   +'<div><b>'+pct(emp?pago/emp:0)+'</b><span>do empenhado virou pagamento</span></div>'
+   +'<div><b class="num">'+nf(n)+'</b><span>emendas de autoria</span></div>'
+   +'<div><b class="num">'+nf(COM_EMENDA.length)+'</b><span>parlamentares com emenda</span></div>';
+
+  var base=COM_EMENDA.filter(function(p){return emN(p,ano)>0;});
+  var lista=base.slice();
+  if(ord==="emp") lista.sort(function(a,b){return emValor(b,ano,"emp")-emValor(a,ano,"emp");});
+  else if(ord==="n") lista.sort(function(a,b){return emN(b,ano)-emN(a,ano);});
+  else if(ord==="gap") lista.sort(function(a,b){
+    return (emValor(b,ano,"emp")-emValor(b,ano,"pago"))-(emValor(a,ano,"emp")-emValor(a,ano,"pago"));});
+  else lista.sort(function(a,b){return emValor(b,ano,"pago")-emValor(a,ano,"pago");});
+
+  var rank=lista.map(function(p,i){return {p:p,pos:i+1};})
+    .filter(function(x){return casaBusca(q,x.p.nome+" "+(x.p.nome_civil||"")+" "+x.p.partido+" "+x.p.uf);});
+  el("em-rank-sub").textContent=nf(base.length)+" parlamentares com emenda"+(ano?" em "+ano:"")
+    +" — "+nf(DADOS.emendas_coletadas||0)+" emendas lidas no Portal da Transparência";
+  el("em-rank-achou").textContent=semAcento(q).trim()
+    ? nf(rank.length)+(rank.length===1?" encontrado":" encontrados") : "";
+  var maior=lista.length?emValor(lista[0],ano,"pago")||emValor(lista[0],ano,"emp"):1;
+  el("em-rank").innerHTML=rank.length
+    ?'<thead><tr><th class="r">#</th><th>Parlamentar</th><th>Partido/UF</th><th class="r">Empenhado</th>'
+    +'<th class="r">Pago</th><th>Relativo ao pago</th><th class="r">Emendas</th></tr></thead><tbody>'
+    +rank.slice(0,40).map(function(x){
+      var p=x.p, e=emValor(p,ano,"emp"), g=emValor(p,ano,"pago");
+      return '<tr><td class="r">'+x.pos+'</td>'
+        +'<td>'+linhaParl(p)+'</td><td class="mono">'+esc(p.partido)+'/'+esc(p.uf)+'</td>'
+        +'<td class="r">'+brl(e)+'</td><td class="r">'+brl(g)+'</td>'
+        +'<td><span class="barra" style="display:block"><i style="width:'+(g/(maior||1)*100).toFixed(1)+'%"></i></span></td>'
+        +'<td class="r">'+nf(emN(p,ano))+'</td></tr>';
+    }).join("")+'</tbody>'
+    :'<tbody><tr><td class="empty">Ninguém corresponde a essa busca.</td></tr></tbody>';
+
+  var fun={}, loc={};
+  COM_EMENDA.forEach(function(p){
+    (p.emendas.funcoes||[]).forEach(function(f){fun[f.funcao]=(fun[f.funcao]||0)+f.valor;});
+    (p.emendas.locais||[]).forEach(function(l){loc[l.local]=(loc[l.local]||0)+l.valor;});
+  });
+  function tabelinha(obj,rot){
+    var l=Object.keys(obj).map(function(k){return {k:k,v:obj[k]};})
+      .sort(function(a,b){return b.v-a.v;}).slice(0,12);
+    var m=l.length?l[0].v:1;
+    return '<thead><tr><th>'+rot+'</th><th class="r">Valor</th><th>Relativo</th></tr></thead><tbody>'
+      +l.map(function(x){
+        return '<tr><td>'+esc(x.k)+'</td><td class="r">'+brlCurto(x.v)+'</td>'
+          +'<td><span class="barra" style="display:block"><i style="width:'+(x.v/m*100).toFixed(1)+'%"></i></span></td></tr>';
+      }).join("")+'</tbody>';
+  }
+  el("em-funcoes").innerHTML=tabelinha(fun,"Área");
+  el("em-locais").innerHTML=tabelinha(loc,"Município ou órgão");
+}
+["em-ord","em-ano"].forEach(function(id){el(id).addEventListener("change",renderEmendas);});
+el("em-q").addEventListener("input",renderEmendas);
+
 /* ---------- composição ---------- */
 function renderComposicao(){
   var dados=LISTA_PART, max=dados[0].total, topo=Math.ceil(max/10)*10;
@@ -1898,12 +2696,15 @@ function renderFontes(){
    ["Câmara dos Deputados — API v2","Deputados em exercício: cadastro, gabinete, redes e foto oficial","Sem autenticação",nf(DEP.length)+" registros"],
    ["Câmara dos Deputados — despesas da cota","Cada nota da 57ª legislatura, com fornecedor, CNPJ, categoria e valor","Sem autenticação",nf(NDOCS)+" notas"],
    ["Senado Federal — parlamentares em exercício","Senadores: cadastro, naturalidade, gabinete, telefone e foto oficial","Sem autenticação",nf(SEN.length)+" registros"],
-   ["TSE — bens de candidato","Patrimônio declarado em "+ANOS_PAT.join(", ")+", casado por CPF","Download aberto",nf(COM_PATR.length)+" casados"]
+   ["TSE — bens de candidato","Patrimônio declarado em "+ANOS_PAT.join(", ")+", casado por CPF","Download aberto",nf(COM_PATR.length)+" casados"],
+   ["TSE — prestação de contas eleitorais","Doações recebidas e empresas contratadas nas campanhas de "+ANOS_CAMP.join(" e "),"Download aberto",nf(COM_CAMP.length)+" com contas"],
+   ["Câmara dos Deputados — votações","Voto nominal de cada deputado no plenário e a orientação de cada bancada","Sem autenticação",nf(VOT?VOT.total_nominais:0)+" votações"],
+   ["CGU — Portal da Transparência","Emendas de autoria: empenhado, pago, destino e área","Token pessoal gov.br",nf(DADOS.emendas_coletadas||0)+" emendas"]
   ];
   var FALTAM=[
-   ["TSE — prestação de contas","Doadores, valores e datas de cada campanha","divulgacandcontas.tse.jus.br","recusa automação"],
-   ["CGU — Portal da Transparência","Emendas de autoria, contratos, convênios e sanções","api.portaldatransparencia.gov.br","exige token gov.br"],
-   ["Receita Federal — dados públicos CNPJ","Quadro societário de mais de 70 milhões de empresas","dadosabertos.rfb.gov.br","host bloqueado"],
+   ["Receita Federal — dados públicos CNPJ","Quadro societário: fecharia o circuito empresa → sócio → político","dadosabertos.rfb.gov.br","host bloqueado"],
+   ["Senado — CEAPS","A cota dos senadores, hoje ausente: só a da Câmara está aqui","senado.leg.br/transparencia","não conectada"],
+   ["CGU — contratos e sanções","Contratos federais das mesmas empresas e empresas punidas (CEIS)","api.portaldatransparencia.gov.br","próxima rodada"],
    ["Querido Diário","Nomeações e exonerações em diários oficiais municipais","queridodiario.ok.org.br","não conectada"]
   ];
   el("fon-ativas").innerHTML='<thead><tr><th>Base</th><th>O que traz</th><th>Acesso</th><th class="r">Volume</th><th>Situação</th></tr></thead><tbody>'
