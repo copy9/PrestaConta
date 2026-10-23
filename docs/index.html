@@ -65,6 +65,13 @@ input[type=search],select{font-family:var(--body);font-size:14px;color:var(--ink
   border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 12px;min-width:0;width:100%;max-width:340px}
 select{max-width:none}
 input[type=search]::placeholder{color:var(--muted)}
+/* campo de busca com lupa: a lupa fica dentro da caixa, sem roubar o clique */
+.busca{position:relative;display:block;flex:1 1 240px;min-width:0}
+.busca input[type=search]{padding-left:34px;max-width:none}
+.busca .lupa{position:absolute;left:11px;top:50%;width:15px;height:15px;transform:translateY(-50%);
+  pointer-events:none;color:var(--muted)}
+.busca .lupa circle,.busca .lupa line{stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round}
+.achou{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.06em;margin-top:7px}
 .ghost{font-family:var(--body);font-size:13px;font-weight:500;color:var(--muted);background:none;
   border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 12px;cursor:pointer;white-space:nowrap}
 .ghost:hover{color:var(--ink);border-color:var(--line-2)}
@@ -429,7 +436,7 @@ img{max-width:100%}
       <div class="sec">
         <header><div><h2>Parlamentares em exercício</h2><small id="pl-hint"></small></div></header>
         <div class="filtros">
-          <label>Buscar<input type="search" id="pf-q" placeholder="nome, partido ou UF" autocomplete="off"></label>
+          <label>Buscar<span class="busca"><svg class="lupa" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><line x1="10.9" y1="10.9" x2="14.4" y2="14.4"/></svg><input type="search" id="pf-q" placeholder="nome, partido ou UF" autocomplete="off"></span></label>
           <label>Casa<select id="pf-casa"><option value="">Todas</option></select></label>
           <label>Partido<select id="pf-partido"><option value="">Todos</option></select></label>
           <label>UF<select id="pf-uf"><option value="">Todas</option></select></label>
@@ -472,6 +479,7 @@ img{max-width:100%}
     <div class="sec">
       <header><div><h2>Maiores variações</h2><small id="pt-rank-sub"></small></div></header>
       <div class="filtros">
+        <label>Buscar<span class="busca"><svg class="lupa" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><line x1="10.9" y1="10.9" x2="14.4" y2="14.4"/></svg><input type="search" id="pt-q" placeholder="nome, partido ou UF" autocomplete="off"></span></label>
         <label>Ordenar por<select id="pt-ord">
           <option value="delta">Maior aumento em reais</option>
           <option value="mult">Maior multiplicação</option>
@@ -496,11 +504,19 @@ img{max-width:100%}
     </div>
     <div class="sec">
       <header><div><h2>Empresas que mais receberam</h2><small>Somando os 10 maiores fornecedores de cada gabinete</small></div></header>
+      <div class="filtros">
+        <label>Buscar<span class="busca"><svg class="lupa" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><line x1="10.9" y1="10.9" x2="14.4" y2="14.4"/></svg><input type="search" id="cota-qf" placeholder="razão social ou CNPJ" autocomplete="off"></span></label>
+      </div>
+      <p class="achou" id="cota-forn-achou"></p>
       <div class="tablewrap"><table id="cota-forn"></table></div>
       <p class="hint">O CNPJ aqui é o elo que falta fechar: quando o quadro societário da Receita entrar, dá para perguntar se algum sócio dessas empresas tem relação com quem assinou a nota.</p>
     </div>
     <div class="sec rule">
       <header><div><h2>Quem mais gastou</h2><small>Total da 57ª legislatura, de 2023 até a última nota publicada</small></div></header>
+      <div class="filtros">
+        <label>Buscar<span class="busca"><svg class="lupa" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><line x1="10.9" y1="10.9" x2="14.4" y2="14.4"/></svg><input type="search" id="cota-q" placeholder="nome, partido ou UF" autocomplete="off"></span></label>
+      </div>
+      <p class="achou" id="cota-rank-achou"></p>
       <div class="tablewrap"><table id="cota-rank"></table></div>
     </div>
   </section>
@@ -531,7 +547,7 @@ img{max-width:100%}
           <button type="button" data-aba="pol" role="tab">Parlamentares</button>
           <button type="button" data-aba="emp" role="tab">Empresas</button>
         </div>
-        <div style="padding:12px 12px 0"><input type="search" id="lg-q" placeholder="nome, partido ou UF" aria-label="Buscar" autocomplete="off"></div>
+        <div style="padding:12px 12px 0"><span class="busca"><svg class="lupa" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><line x1="10.9" y1="10.9" x2="14.4" y2="14.4"/></svg><input type="search" id="lg-q" placeholder="nome, partido ou UF" aria-label="Buscar" autocomplete="off"></span></div>
         <div class="lglista" id="lg-lista"></div>
       </div>
       <div style="display:grid;gap:16px;min-width:0">
@@ -614,6 +630,16 @@ var MES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function el(id){return document.getElementById(id);}
 function nf(n){return Number(n).toLocaleString("pt-BR");}
+/* busca que ignora acento, caixa e pontuação: "jose" acha "José", "12345678" acha "12.345.678/0001-90" */
+function semAcento(s){return String(s==null?"":s).normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();}
+function casaBusca(q,texto){
+  q=semAcento(q).trim();
+  if(!q) return true;
+  var t=semAcento(texto);
+  if(t.indexOf(q)>=0) return true;
+  var so=q.replace(/\D/g,"");               // digitou um CNPJ com ou sem pontuação
+  return so.length>=3 && t.replace(/\D/g,"").indexOf(so)>=0;
+}
 function brl(n){return "R$ "+Number(n).toLocaleString("pt-BR",{maximumFractionDigits:0});}
 function brlCurto(n){
   if(n>=1e9) return "R$ "+(n/1e9).toLocaleString("pt-BR",{maximumFractionDigits:2})+" bi";
@@ -780,13 +806,13 @@ el("themebtn").addEventListener("click",function(){
 
 var PAGINA=96, mostrando=PAGINA, filtrados=[];
 function filtra(){
-  var q=el("pf-q").value.trim().toLowerCase();
+  var q=el("pf-q").value;
   var casa=el("pf-casa").value, part=el("pf-partido").value, uf=el("pf-uf").value, ord=el("pf-ord").value;
   var r=PARL.filter(function(p){
     if(casa&&p.casa!==casa) return false;
     if(part&&p.partido!==part) return false;
     if(uf&&p.uf!==uf) return false;
-    if(q&&(p.nome+" "+(p.nome_civil||"")+" "+p.partido+" "+p.uf+" "+p.cargo).toLowerCase().indexOf(q)<0) return false;
+    if(!casaBusca(q,p.nome+" "+(p.nome_civil||"")+" "+p.partido+" "+p.uf+" "+p.cargo)) return false;
     return true;
   });
   r.sort(function(a,b){
@@ -1002,20 +1028,41 @@ function renderCota(){
     +". O último mês publicado ("+rotuloMes(ult)+") costuma aparecer incompleto, porque as notas chegam com atraso.";
   linhaMensal("cota-chart",SERIE_GERAL,"var(--data)");
 
-  el("cota-forn").innerHTML='<thead><tr><th class="r">#</th><th>Empresa</th><th>CNPJ</th>'
+  /* busca nas duas tabelas: a posição mostrada é a do ranking inteiro */
+  var qf=el("cota-qf").value;
+  var emp=FORN.map(function(f,i){return {f:f,pos:i+1};})
+    .filter(function(x){return casaBusca(qf,(x.f.nome||"")+" "+x.f.cnpj);});
+  el("cota-forn-achou").textContent=semAcento(qf).trim()
+    ? nf(emp.length)+(emp.length===1?" empresa encontrada":" empresas encontradas")
+      +" entre as "+nf(FORN.length)+" fornecedoras" : "";
+  el("cota-forn").innerHTML=emp.length
+    ?'<thead><tr><th class="r">#</th><th>Empresa</th><th>CNPJ</th>'
     +'<th class="r">Recebeu</th><th class="r">Gabinetes</th></tr></thead><tbody>'
-    +FORN.slice(0,25).map(function(f,i){
-      return '<tr><td class="r">'+(i+1)+'</td><td>'+esc(f.nome||"—")+'</td>'
+    +emp.slice(0,25).map(function(x){
+      var f=x.f;
+      return '<tr><td class="r">'+x.pos+'</td><td>'+esc(f.nome||"—")+'</td>'
         +'<td class="mono">'+cnpjFmt(f.cnpj)+'</td><td class="r">'+brl(f.valor)+'</td>'
         +'<td class="r">'+nf(f.gabinetes)+'</td></tr>';
-    }).join("")+'</tbody>';
+    }).join("")+'</tbody>'
+    :'<tbody><tr><td class="empty">Nenhuma empresa corresponde a essa busca.</td></tr></tbody>';
 
-  var rank=COM_COTA.slice().sort(function(a,b){return b.cota.total-a.cota.total;}).slice(0,30);
-  var maior=rank[0].cota.total;
+  var q=el("cota-q").value;
+  var todos=COM_COTA.slice().sort(function(a,b){return b.cota.total-a.cota.total;});
+  var maior=todos[0].cota.total;
+  var rank=todos.map(function(p,i){return {p:p,pos:i+1};})
+    .filter(function(x){return casaBusca(q,x.p.nome+" "+(x.p.nome_civil||"")+" "+x.p.partido+" "+x.p.uf);});
+  el("cota-rank-achou").textContent=semAcento(q).trim()
+    ? nf(rank.length)+(rank.length===1?" gabinete encontrado":" gabinetes encontrados")
+      +" entre os "+nf(todos.length)+" com gasto" : "";
+  if(!rank.length){
+    el("cota-rank").innerHTML='<tbody><tr><td class="empty">Nenhum gabinete corresponde a essa busca.</td></tr></tbody>';
+    return;
+  }
   el("cota-rank").innerHTML='<thead><tr><th class="r">#</th><th>Parlamentar</th><th>Partido/UF</th>'
     +'<th class="r">Total</th><th>Relativo</th><th class="r">Notas</th></tr></thead><tbody>'
-    +rank.map(function(p,i){
-      return '<tr><td class="r">'+(i+1)+'</td>'
+    +rank.slice(0,30).map(function(x){
+      var p=x.p;
+      return '<tr><td class="r">'+x.pos+'</td>'
         +'<td><span style="display:flex;align-items:center;gap:10px">'+foto(p,"sm")
           +'<button type="button" class="linkbtn" data-pid="'+esc(p.id)+'">'+esc(p.nome)+'</button></span></td>'
         +'<td class="mono">'+esc(p.partido)+'/'+esc(p.uf)+'</td>'
@@ -1145,14 +1192,26 @@ function renderPatrimonio(){
   else if(ord==="total") lista.sort(function(a,b){return patrAtual(b)-patrAtual(a);});
   else lista.sort(function(a,b){return patrDelta(b)-patrDelta(a);});
 
-  el("pt-rank-sub").textContent=nf(base.length)+" parlamentares têm duas ou mais declarações"
-    +(ord==="mult"?" — a multiplicação só aparece para quem partiu de pelo menos R$ 100 mil":"");
+  /* a posição é guardada antes da busca: ao procurar um nome, o número que
+     aparece é o lugar dele no ranking inteiro, não a linha da tela */
+  var q=el("pt-q").value;
+  var ranque=lista.map(function(p,i){return {p:p,pos:i+1};})
+    .filter(function(x){return casaBusca(q,x.p.nome+" "+(x.p.nome_civil||"")+" "+x.p.partido+" "+x.p.uf);});
 
+  el("pt-rank-sub").textContent=semAcento(q).trim()
+    ? nf(ranque.length)+(ranque.length===1?" parlamentar encontrado":" parlamentares encontrados")+" na busca"
+    : nf(base.length)+" parlamentares têm duas ou mais declarações"
+      +(ord==="mult"?" — a multiplicação só aparece para quem partiu de pelo menos R$ 100 mil":"");
+
+  if(!ranque.length){
+    el("pt-rank").innerHTML='<tbody><tr><td class="empty">Nenhum parlamentar com declaração corresponde a essa busca.</td></tr></tbody>';
+    return;
+  }
   el("pt-rank").innerHTML='<thead><tr><th class="r">#</th><th>Parlamentar</th><th>Partido/UF</th>'
     +'<th class="r">Primeira</th><th class="r">Última</th><th class="r">Variação</th><th class="r">×</th></tr></thead><tbody>'
-    +lista.slice(0,40).map(function(p,i){
-      var s=patr(p), pr=s[0], ul=s[s.length-1], d=ul.valor-pr.valor, m=patrMult(p);
-      return '<tr><td class="r">'+(i+1)+'</td>'
+    +ranque.slice(0,40).map(function(x){
+      var p=x.p, s=patr(p), pr=s[0], ul=s[s.length-1], d=ul.valor-pr.valor, m=patrMult(p);
+      return '<tr><td class="r">'+x.pos+'</td>'
         +'<td><span style="display:flex;align-items:center;gap:10px">'+foto(p,"sm")
           +'<button type="button" class="linkbtn" data-pid="'+esc(p.id)+'">'+esc(p.nome)+'</button></span></td>'
         +'<td class="mono">'+esc(p.partido)+'/'+esc(p.uf)+'</td>'
@@ -1165,6 +1224,11 @@ function renderPatrimonio(){
 ["pt-ord","pt-casa"].forEach(function(id){
   el(id).addEventListener("change",renderPatrimonio);
 });
+/* campo de texto só escuta "input": com "change" junto, o blur do clique
+   redesenharia a tabela e engoliria o clique no nome */
+el("pt-q").addEventListener("input",renderPatrimonio);
+el("cota-q").addEventListener("input",renderCota);
+el("cota-qf").addEventListener("input",renderCota);
 
 /* ---------- quem mais declara cada categoria, para dar contexto no detalhe ---------- */
 var RANK_BEM={}, RANK_GASTO={};
