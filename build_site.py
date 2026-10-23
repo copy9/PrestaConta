@@ -76,7 +76,7 @@ html = f"""<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Diretorio dos 594 parlamentares em exercicio, com foto oficial, patrimonio declarado ao TSE e a cota parlamentar nota a nota. Dados abertos da Camara, do Senado e do TSE.">
-<meta name="color-scheme" content="dark light">
+<meta name="color-scheme" content="dark">
 {cabeca}
 </head>
 <body>

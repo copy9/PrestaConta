@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Diretorio dos 594 parlamentares em exercicio, com foto oficial, patrimonio declarado ao TSE e a cota parlamentar nota a nota. Dados abertos da Camara, do Senado e do TSE.">
-<meta name="color-scheme" content="dark light">
+<meta name="color-scheme" content="dark">
 <title>PrestaConta</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,17 +28,8 @@
   --r:10px; --r-sm:7px;
   color-scheme:dark;
 }
-@media (prefers-color-scheme: light){
-  :root:not([data-theme="dark"]){
-    --bg:#F3F4F1; --surface:#FFFFFF; --surface-2:#FAFAF8; --surface-3:#EBECE7;
-    --ink:#14161A; --ink-2:#3C4248; --muted:#646B70; --line:#E2E3DE; --line-2:#C6C9C1;
-    --crit:#A52A1F; --crit-bg:#FBE9E6;
-    --warn:#8A5A06; --warn-bg:#FAF0DB;
-    --ok:#1E6B45;  --ok-bg:#E1F0E8;
-    --data:#2F5EA8; --data-2:#8FB0DC; --data-bg:#E6EDF8;
-    color-scheme:light;
-  }
-}
+/* O escuro e o padrao, sempre, mesmo com o sistema no claro. O tema claro
+   continua inteiro aqui embaixo e entra so quando o visitante clica em "Tema". */
 :root[data-theme="light"]{
   --bg:#F3F4F1; --surface:#FFFFFF; --surface-2:#FAFAF8; --surface-3:#EBECE7;
   --ink:#14161A; --ink-2:#3C4248; --muted:#646B70; --line:#E2E3DE; --line-2:#C6C9C1;
@@ -761,11 +752,17 @@ document.addEventListener("click",function(e){
   var b=e.target.closest("[data-back]"); if(b){go(b.dataset.back);return;}
   var p=e.target.closest("[data-pid]"); if(p){go("parlamentares",{id:p.dataset.pid});return;}
 });
+/* escolha de tema guardada no navegador de quem visita; se o armazenamento
+   estiver bloqueado, o site continua funcionando no escuro */
+(function(){
+  try{ if(localStorage.getItem("tema")==="light") document.documentElement.setAttribute("data-theme","light"); }catch(e){}
+})();
 el("themebtn").addEventListener("click",function(){
-  var root=document.documentElement, now=root.getAttribute("data-theme");
-  /* sem atributo, o tema é o escuro, a não ser que o sistema peça claro */
-  var escuro=now?now==="dark":!window.matchMedia("(prefers-color-scheme: light)").matches;
+  var root=document.documentElement;
+  /* sem atributo, o tema é o escuro — independente do que o sistema pede */
+  var escuro=root.getAttribute("data-theme")!=="light";
   root.setAttribute("data-theme",escuro?"light":"dark");
+  try{ localStorage.setItem("tema",escuro?"light":"dark"); }catch(e){}
   if(current==="composicao") renderComposicao();
   if(current==="cota") renderCota();
   if(sel) renderFicha();
