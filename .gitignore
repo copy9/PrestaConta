@@ -1,0 +1,15 @@
+# CSV do TSE: centenas de MB, baixados sob demanda (ver README)
+/tse/
+*.zip
+
+# fotos soltas e folhas na raiz: o que vai para o site e docs/sp*.jpg
+/fotos/
+/sp*.jpg
+
+# saidas intermediarias (a barra inicial importa: docs/ tem de continuar versionado)
+/prestaconta.html
+/dados/backup_*.json
+
+__pycache__/
+*.pyc
+.DS_Store
