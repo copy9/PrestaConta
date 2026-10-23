@@ -2,9 +2,8 @@
 /tse/
 *.zip
 
-# fotos soltas e folhas na raiz: o que vai para o site e docs/sp*.jpg
+# fotos soltas da coleta; as folhas sp*.jpg SAO o site e ficam versionadas
 /fotos/
-/sp*.jpg
 
 # saidas intermediarias (a barra inicial importa: docs/ tem de continuar versionado)
 /prestaconta.html

@@ -85,20 +85,46 @@ html = f"""<!doctype html>
 </html>
 """
 
-os.makedirs(SAIDA, exist_ok=True)
-open(os.path.join(SAIDA, "index.html"), "w", encoding="utf-8").write(html)
-
 folhas = dados.get("sprite", {}).get("folhas", 0)
-for i in range(folhas):
-    shutil.copy(os.path.join(RAIZ, f"sp{i}.jpg"), os.path.join(SAIDA, f"sp{i}.jpg"))
-if externo:
-    open(os.path.join(SAIDA, "dados.json"), "w", encoding="utf-8").write(bloco)
-# o Pages ignora pastas com _ se nao tiver isto
-open(os.path.join(SAIDA, ".nojekyll"), "w").close()
+
+
+def onde_esta_a_folha(i):
+    """As folhas podem estar na raiz (maquina de coleta) ou so em docs/ (clone)."""
+    for base in (RAIZ, SAIDA):
+        p = os.path.join(base, f"sp{i}.jpg")
+        if os.path.exists(p):
+            return p
+    sys.exit(f"sp{i}.jpg nao encontrado nem na raiz nem em docs/")
+
+
+# Guarda as folhas antes de mexer em qualquer coisa: se elas so existem em docs/,
+# copiar docs/ -> raiz depois de reescrever docs/ apagaria a origem.
+folha_origem = [onde_esta_a_folha(i) for i in range(folhas)]
+
+
+def escreve_site(destino):
+    os.makedirs(destino, exist_ok=True)
+    open(os.path.join(destino, "index.html"), "w", encoding="utf-8").write(html)
+    for i, orig in enumerate(folha_origem):
+        alvo = os.path.join(destino, f"sp{i}.jpg")
+        if os.path.abspath(orig) != os.path.abspath(alvo):
+            shutil.copy(orig, alvo)
+    if externo:
+        open(os.path.join(destino, "dados.json"), "w", encoding="utf-8").write(bloco)
+    # sem isto o Pages passa tudo por um gerador que descarta arquivos com _
+    open(os.path.join(destino, ".nojekyll"), "w").close()
+
+
+# O site vai para os dois lugares de proposito: assim o GitHub Pages serve a
+# pagina tanto configurado na pasta /docs quanto na raiz (/), que e onde o Pages
+# mostraria o README se nao houvesse index.html. Ninguem precisa acertar a
+# configuracao para o site abrir.
+escreve_site(SAIDA)
+escreve_site(RAIZ)
 
 tam = os.path.getsize(os.path.join(SAIDA, "index.html")) / 1024
 total = sum(os.path.getsize(os.path.join(SAIDA, f)) for f in os.listdir(SAIDA))
-print(f"docs/ pronto ({'dados externos' if externo else 'dados embutidos'})")
+print(f"site pronto em docs/ e na raiz ({'dados externos' if externo else 'dados embutidos'})")
 print(f"  index.html  {tam:.0f} KB")
 print(f"  {folhas} folhas de foto")
-print(f"  total       {total/1024/1024:.2f} MB")
+print(f"  cada copia  {total/1024/1024:.2f} MB")
