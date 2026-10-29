@@ -109,6 +109,10 @@ tr.alerta td:first-child{box-shadow:inset 3px 0 0 var(--crit)}
 .vtcab b{font-size:13.5px;font-weight:600;overflow-wrap:anywhere}
 .vtpe{display:flex;gap:10px;justify-content:space-between;font-size:11.5px;color:var(--muted)}
 .dupla{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;align-items:start}
+/* a leitura do achado, logo abaixo da linha a que ela se refere */
+tr.leitura td{padding-top:0;font-size:13px;color:var(--ink-2);line-height:1.55}
+tr.leitura p{max-width:92ch;border-left:2px solid var(--line-2);padding-left:12px}
+tr.leitura b{color:var(--ink);font-weight:600}
 .dot{width:6px;height:6px;border-radius:99px;background:currentColor;flex:none}
 .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
@@ -1195,19 +1199,16 @@ function renderVinculoBloco(p){
    +'<small>Cruzamento do quadro societário da Receita com o que esta pessoa pagou e recebeu</small></div></header>'
    +(meusS.length?'<div class="card naoe" style="margin-bottom:12px">'
      +meusS.map(function(x){
-        return '<div><i>&#9888;</i><span><b>Sócio de '+esc(x.empresa)+'</b> ('+esc(x.qual||"sócio")+'). '
-          +(x.cpf_confere?'Nome e CPF parcial conferem com a Receita. ':'O nome confere; '
-            +(x.cpf_disponivel?'o CPF parcial, não. ':'a fonte não publica CPF para conferir. '))
-          +(x.campanha?'A campanha dele pagou '+brl(x.campanha)+' a esta empresa. ':'')
-          +(x.cota?'O gabinete pagou '+brl(x.cota)+' pela cota. ':'')
-          +'<button type="button" class="linkbtn" data-cnpj="'+esc(x.cnpj)+'">ver a empresa</button></span></div>';
+        return '<div><i>&#9888;</i><span>'+esc(x.leitura||"")
+          +' <button type="button" class="linkbtn" data-cnpj="'+esc(x.cnpj)+'">ver a empresa</button></span></div>';
      }).join("")+'</div>':'')
    +(meusD.length?'<div class="tablewrap"><table><thead><tr><th>Doador que é sócio</th><th>Empresa dele</th>'
      +'<th class="r">Doou</th><th class="r">A empresa recebeu</th></tr></thead><tbody>'
      +meusD.map(function(x){
         return '<tr class="alerta"><td>'+esc(x.socio)+'<br><span class="hint">'+esc(x.qual||"sócio")+'</span></td>'
           +'<td><button type="button" class="linkbtn" data-cnpj="'+esc(x.cnpj)+'">'+esc(x.empresa)+'</button></td>'
-          +'<td class="r">'+brl(x.doou)+'</td><td class="r">'+brl(x.cota+x.campanha)+'</td></tr>';
+          +'<td class="r">'+brl(x.doou)+'</td><td class="r">'+brl(x.cota+x.campanha)+'</td></tr>'
+          +linhaLeitura(x,4);
      }).join("")+'</tbody></table></div>':'')
    +'<p class="hint">Nada aqui é acusação. São coincidências de nome e CPF parcial entre bases públicas, publicadas para serem conferidas na fonte.</p>'
    +'</div>';
@@ -2826,6 +2827,13 @@ function blocoSocios(cnpj){
        +(e.n>q.length?'<p class="hint">'+nf(e.n-q.length)+' sócio(s) a mais não mostrados.</p>':'')
       :'<p class="hint">Sem quadro societário publicado — é o caso de MEI, de empresa individual e de órgão público.</p>');
 }
+/* a leitura vem pronta do cruzamento: o site explica o que achou, em vez de
+   largar a tabela e deixar o leitor adivinhar se aquilo quer dizer alguma coisa */
+function linhaLeitura(x,colunas){
+  if(!x.leitura) return "";
+  return '<tr class="leitura"><td colspan="'+colunas+'"><p>'+esc(x.leitura)+'</p></td></tr>';
+}
+
 /* o nome digitado na nota fiscal nem sempre é a razão social registrada */
 function nomeDivergente(cnpj,nomeNaNota){
   var e=empresaDe(cnpj);
@@ -2840,21 +2848,13 @@ function nomeDivergente(cnpj,nomeNaNota){
 function alertasDaEmpresa(cnpj){
   var cn=String(cnpj).replace(/\D/g,""), out=[];
   VINC.socio_parlamentar.forEach(function(x){
-    if(x.cnpj!==cn) return;
-    var p=parlPorId(x.id);
-    out.push('<b>'+esc(p?p.nome:x.id)+' é sócio desta empresa.</b> '
-      +(x.cpf_confere?'Nome e CPF parcial batem com os da Receita.'
-                     :'O nome bate; '+(x.cpf_disponivel?'o CPF parcial, não.':'a fonte não publica o CPF para conferir.')));
+    if(x.cnpj===cn&&x.leitura) out.push(esc(x.leitura));
   });
   VINC.socio_doador.forEach(function(x){
-    if(x.cnpj!==cn) return;
-    var p=parlPorId(x.id);
-    out.push('<b>'+esc(x.socio)+', sócio daqui, doou '+brl(x.doou)+' para a campanha de '
-      +esc(p?p.nome:x.id)+'</b> — e esta empresa recebeu dinheiro do mesmo parlamentar.');
+    if(x.cnpj===cn&&x.leitura) out.push(esc(x.leitura));
   });
   VINC.cadastro.forEach(function(x){
-    if(x.cnpj!==cn) return;
-    out.push('<b>No cadastro:</b> '+x.motivos.map(esc).join("; ")+'.');
+    if(x.cnpj===cn&&x.leitura) out.push(esc(x.leitura));
   });
   if(!out.length) return "";
   return '<div class="card naoe" style="margin-top:12px">'
@@ -2885,7 +2885,8 @@ function renderVinculos(){
             ?'<span class="chip crit"><i class="dot"></i>nome e CPF batem</span>'
             :'<span class="chip warn"><i class="dot"></i>'+(x.cpf_disponivel?"só o nome bate":"CPF não publicado pela fonte")+'</span>')+'</td>'
         +'<td class="r">'+(x.campanha?brl(x.campanha):"—")+'</td>'
-        +'<td class="r">'+(x.cota?brl(x.cota):(x.cota_outros?'<span class="hint">'+brlCurto(x.cota_outros)+' de outros</span>':"—"))+'</td></tr>';
+        +'<td class="r">'+(x.cota?brl(x.cota):(x.cota_outros?'<span class="hint">'+brlCurto(x.cota_outros)+' de outros</span>':"—"))+'</td></tr>'
+        +linhaLeitura(x,6);
     }).join("")+'</tbody>'
     :'<tbody><tr><td class="empty">Nenhum caso encontrado com os critérios acima.</td></tr></tbody>';
 
@@ -2908,7 +2909,8 @@ function renderVinculos(){
         +'<td class="r">'+brl(x.doou)+'</td>'
         +'<td class="r">'+brl(tot)+'<br><span class="hint">'
           +(x.cota?brlCurto(x.cota)+' de cota':'')+(x.cota&&x.campanha?' · ':'')
-          +(x.campanha?brlCurto(x.campanha)+' da campanha':'')+'</span></td></tr>';
+          +(x.campanha?brlCurto(x.campanha)+' da campanha':'')+'</span></td></tr>'
+        +linhaLeitura(x,5);
     }).join("")+'</tbody>'
     :'<tbody><tr><td class="empty">Nenhum caso corresponde a essa busca.</td></tr></tbody>';
 
@@ -2931,7 +2933,8 @@ function renderVinculos(){
         +'<td>'+chipSituacao(x.situacao)+'</td>'
         +'<td>'+x.motivos.map(esc).join("<br>")+'</td>'
         +'<td class="r">'+brl(x.cota)+'</td>'
-        +'<td class="r">'+nf(x.gabinetes)+'</td></tr>';
+        +'<td class="r">'+nf(x.gabinetes)+'</td></tr>'
+        +linhaLeitura(x,5);
     }).join("")+'</tbody>'
     :'<tbody><tr><td class="empty">Nenhuma empresa corresponde a esse filtro.</td></tr></tbody>';
 }

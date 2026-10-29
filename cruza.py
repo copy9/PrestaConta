@@ -91,7 +91,34 @@ def main():
         for pid, cpf in pool.map(cpf_do_deputado, deps):
             if cpf:
                 cpf6[pid] = cpf[3:9]
-    print(f"  {len(cpf6)} obtidos", flush=True)
+    print(f"  {len(cpf6)} pela API da Camara", flush=True)
+
+    # O Senado nao publica CPF, mas o TSE publica: quando o candidato poe dinheiro
+    # proprio na campanha, ele aparece na lista de doadores com o proprio nome e o
+    # proprio CPF mascarado. Mesmos seis digitos, mesma mascara — serve para conferir.
+    por_tse = 0
+    for p in regs:
+        if cpf6.get(p["id"]):
+            continue
+        nomes = {chave(p.get("nome")), chave(p.get("nome_civil"))}
+        for ano, b in (p.get("campanha") or {}).items():
+            for d in b["doadores"]:
+                if d["tipo"] != "PF":
+                    continue
+                proprio = "próprio" in (d.get("fonte") or "").lower()
+                if (proprio or chave(d["nome"]) in nomes) and chave(d["nome"]) in nomes:
+                    m = miolo(d["doc"])
+                    if m:
+                        cpf6[p["id"]] = m
+                        por_tse += 1
+                        break
+            if cpf6.get(p["id"]):
+                break
+    print(f"  mais {por_tse} pelo recurso proprio declarado ao TSE "
+          f"({len(cpf6)} no total)", flush=True)
+    # quem e o proprio parlamentar, para nao chamar o candidato de "doador externo"
+    eu_mesmo = {(chave(p.get("nome")), cpf6.get(p["id"], "")) for p in regs}
+    eu_mesmo |= {(chave(p.get("nome_civil")), cpf6.get(p["id"], "")) for p in regs}
 
     # indice: nome do parlamentar -> ids
     parl_nome = defaultdict(set)
@@ -163,14 +190,19 @@ def main():
             alvo = doador.get((k, m)) if m else None
             if alvo:
                 for pid, valor in alvo.items():
-                    if pid in quem:
-                        v_doador.append({
-                            "cnpj": cnpj, "empresa": e["razao"], "situacao": e["situacao"],
-                            "id": pid, "socio": s["nome"], "qual": s["qual"],
-                            "doou": round(valor),
-                            "cota": recebeu_cota.get(pid, 0),
-                            "campanha": recebeu_camp.get(pid, 0),
-                        })
+                    if pid not in quem:
+                        continue
+                    # candidato que poe dinheiro proprio nao e "doador": e ele mesmo,
+                    # e esse caso ja esta na tabela de socio = parlamentar
+                    if (k, m) in eu_mesmo:
+                        continue
+                    v_doador.append({
+                        "cnpj": cnpj, "empresa": e["razao"], "situacao": e["situacao"],
+                        "id": pid, "socio": s["nome"], "qual": s["qual"],
+                        "doou": round(valor),
+                        "cota": recebeu_cota.get(pid, 0),
+                        "campanha": recebeu_camp.get(pid, 0),
+                    })
 
         # 3. o cadastro da empresa por si so
         if recebeu_cota:
@@ -198,6 +230,88 @@ def main():
                     "gabinetes": len(recebeu_cota),
                     "quem": sorted(recebeu_cota, key=lambda i: -recebeu_cota[i])[:6],
                 })
+
+    # --- a leitura de cada achado, escrita a partir do proprio dado ---------------
+    def brl(v):
+        return "R$ " + f"{round(v):,}".replace(",", ".")
+
+    def quanto(v):
+        if v >= 1_000_000:
+            return f"R$ {v/1_000_000:.1f} mi".replace(".", ",")
+        if v >= 1000:
+            return f"R$ {round(v/1000)} mil"
+        return brl(v)
+
+    for x in v_parl:
+        p = por_id[x["id"]]
+        quem_e = f"{p['nome']} ({p['partido']}/{p['uf']})"
+        firmeza = ("Nome e CPF parcial batem com os da Receita, então é a mesma pessoa."
+                   if x["cpf_confere"] else
+                   "Só o nome bate: a fonte não publica CPF desta pessoa para conferir, "
+                   "e homônimo acontece.")
+        partes = [f"{quem_e} aparece como {x['qual'].lower() or 'sócio'} da "
+                  f"{x['empresa']} no quadro societário da Receita. {firmeza}"]
+        if x["campanha"] and x["cota"]:
+            partes.append(f"A campanha dele pagou {quanto(x['campanha'])} a essa empresa, "
+                          f"e o gabinete pagou mais {quanto(x['cota'])} com a cota parlamentar.")
+            partes.append("Quem decide o gasto e quem recebe são a mesma pessoa nos dois casos. "
+                          "É declarado e não é proibido, mas é o tipo de contratação que "
+                          "costuma exigir explicação: o dinheiro sai do caixa público ou de "
+                          "campanha e entra num patrimônio dele.")
+        elif x["campanha"]:
+            partes.append(f"A campanha dele pagou {quanto(x['campanha'])} a essa mesma empresa.")
+            partes.append("Na prática, parte do gasto de campanha ficou dentro do próprio "
+                          "patrimônio. A lei permite e a prestação de contas declara — o que "
+                          "este site faz é mostrar que as duas pontas são a mesma pessoa.")
+        elif x["cota"]:
+            partes.append(f"O gabinete dele pagou {quanto(x['cota'])} a essa empresa com a "
+                          f"cota parlamentar, que é dinheiro público.")
+            partes.append("Gabinete contratando empresa do próprio titular é o caso mais "
+                          "sensível desta página: cabe checar se houve declaração de "
+                          "impedimento e qual serviço foi prestado.")
+        elif x["cota_outros"]:
+            partes.append(f"Ele não pagou nada a ela, mas outros gabinetes pagaram "
+                          f"{quanto(x['cota_outros'])} com a cota.")
+            partes.append("Empresa de parlamentar recebendo cota de colegas não é ilegal, "
+                          "mas é um fluxo de dinheiro público para o patrimônio de alguém "
+                          "que vota as regras desse mesmo dinheiro.")
+        x["leitura"] = " ".join(partes)
+
+    for x in v_doador:
+        p = por_id[x["id"]]
+        total = x["cota"] + x["campanha"]
+        de_onde = []
+        if x["campanha"]:
+            de_onde.append(f"{quanto(x['campanha'])} da própria campanha")
+        if x["cota"]:
+            de_onde.append(f"{quanto(x['cota'])} da cota parlamentar, que é dinheiro público")
+        volta = round(total / x["doou"], 1) if x["doou"] else 0
+        x["leitura"] = (
+            f"{x['socio'].title()} doou {quanto(x['doou'])} para a campanha de {p['nome']} "
+            f"({p['partido']}/{p['uf']}). Essa mesma pessoa é {x['qual'].lower() or 'sócia'} "
+            f"da {x['empresa']}, que recebeu {' e '.join(de_onde)} do mesmo parlamentar. "
+            + (f"Voltou cerca de {str(volta).replace('.', ',')}× o valor doado. "
+               if volta >= 1 else "")
+            + "Doação e contratação são atos legais e separados; o que chama atenção é o "
+              "circuito fechado — o dinheiro sai de quem doou e volta para uma empresa dele. "
+              "Confira o serviço prestado antes de concluir qualquer coisa."
+        )
+
+    for x in v_cadastro:
+        nomes = [por_id[i]["nome"] for i in x["quem"] if i in por_id][:3]
+        sit = (x["situacao"] or "").upper()
+        base = (f"A {x['empresa']} recebeu {quanto(x['cota'])} da cota parlamentar de "
+                f"{x['gabinetes']} gabinete(s)"
+                + (f", entre eles {', '.join(nomes)}" if nomes else "") + ". ")
+        if sit and sit != "ATIVA":
+            base += (f"Hoje o CNPJ dela está {sit.lower()} na Receita. A situação é a de agora, "
+                     "não a da data da nota: empresa que fecha depois de prestar o serviço é "
+                     "comum e legítimo. Vale olhar quando a baixa aconteceu.")
+        else:
+            base += ("Ela foi aberta pouco antes do primeiro pagamento. Empresa nova também "
+                     "nasce todo dia e precisa de cliente — o que pede checagem é empresa "
+                     "aberta às vésperas de ganhar um contrato de porte.")
+        x["leitura"] = base
 
     v_parl.sort(key=lambda x: -(x["cota"] + x["campanha"]))
     v_doador.sort(key=lambda x: -(x["cota"] + x["campanha"]))
