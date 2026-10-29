@@ -57,6 +57,20 @@ if os.path.exists("dados/votacoes.json"):
         "recentes": v["recentes"],
     }
 
+if os.path.exists("dados/socios.json"):
+    s = json.load(open("dados/socios.json", encoding="utf-8"))
+    # chaves curtas de proposito: sao 8,9 mil empresas dentro da pagina, e o nome
+    # inteiro de cada campo repetido 8.893 vezes custa mais de 1 MB sozinho
+    base["empresas"] = {
+        k: {"r": v["razao"], "s": v["situacao"], "u": v["uf"], "m": v["municipio"],
+            "c": v["cnae"], "a": v["abertura"], "n": v["n_socios"],
+            "q": [[x["nome"], x["cpf6"], x["qual"]] for x in v["socios"][:6]]}
+        for k, v in s["empresas"].items()}
+    base["empresas_meta"] = {"consultados": s["consultados"], "respondidos": s["respondidos"]}
+
+if os.path.exists("dados/vinculos.json"):
+    base["vinculos"] = json.load(open("dados/vinculos.json", encoding="utf-8"))
+
 base["juntado_em"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")
 json.dump(base, open("dados/parlamentares.json", "w", encoding="utf-8"),
           ensure_ascii=False, separators=(",", ":"))

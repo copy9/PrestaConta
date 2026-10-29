@@ -343,6 +343,7 @@ footer .wrap{padding-block:24px;font-size:12.5px;color:var(--muted);display:grid
       <button type="button" data-go="campanha">Campanha</button>
       <button type="button" data-go="votacoes">Votações</button>
       <button type="button" data-go="emendas">Emendas</button>
+      <button type="button" data-go="vinculos">Vínculos</button>
       <button type="button" data-go="cota">Cota parlamentar</button>
       <button type="button" data-go="ligacoes">Ligações</button>
       <button type="button" data-go="composicao">Composição</button>
@@ -412,10 +413,10 @@ footer .wrap{padding-block:24px;font-size:12.5px;color:var(--muted);display:grid
     <div class="sec rule">
       <p class="eyebrow">O problema</p>
       <div class="prosa">
-        <p>No Brasil quase tudo já é público. O TSE publica quem se candidatou, o patrimônio declarado e quem financiou a campanha. A Receita publica o quadro societário de <strong>mais de 70 milhões de empresas</strong>. A CGU publica contratos, emendas e sanções. O que não existe é a ligação entre eles.</p>
+        <p>No Brasil quase tudo já é público. O TSE publica quem se candidatou, o patrimônio declarado e quem financiou a campanha. A Receita publica o quadro societário de <strong>mais de 70 milhões de empresas</strong>. A CGU publica contratos, emendas e sanções. O que não existia é a ligação entre eles — e é isso que esta página faz.</p>
         <p>São cinco sistemas, cinco formatos e nenhuma chave em comum. O CPF do sócio <strong>vem mascarado na origem</strong>, com só seis dígitos visíveis — então nem o cruzamento mais óbvio é automático.</p>
         <p>Aqui o caminho já está montado de ponta a ponta, menos um pedaço: cada parlamentar, o patrimônio que declarou eleição a eleição, <strong>quem bancou a campanha dele</strong>, as empresas que a campanha pagou, como votou em cada votação nominal, as emendas que assinou e para onde o dinheiro foi, e <strong>o CNPJ de cada empresa paga com a cota do mandato</strong>.</p>
-        <p>Com isso dá para perguntar uma coisa que nenhuma das bases responde sozinha: <strong>a empresa que recebeu da cota é a mesma que a campanha já tinha pago?</strong> Falta o quadro societário da Receita para o último passo — saber quem são os donos dessas empresas.</p>
+        <p>E, desde a última rodada, o <strong>quadro societário</strong> de cada uma dessas empresas. Com ele o site responde o que nenhuma base responde sozinha: <strong>quem é o dono da empresa que recebeu o dinheiro público</strong> — e se esse dono é o próprio parlamentar, ou alguém que financiou a campanha dele.</p>
       </div>
     </div>
 
@@ -426,6 +427,7 @@ footer .wrap{padding-block:24px;font-size:12.5px;color:var(--muted);display:grid
         <button type="button" class="feat" data-go="campanha"><h4>Quem bancou a eleição</h4><p>Doador a doador, com valor e natureza, e as empresas que a campanha contratou — mais o cruzamento com as que receberam da cota depois.</p><span class="vai">Ver campanha &rarr;</span></button>
         <button type="button" class="feat" data-go="votacoes"><h4>Como cada um votou</h4><p>Voto nominal no plenário, presença e quantas vezes votou contra a orientação da própria bancada.</p><span class="vai">Ver votações &rarr;</span></button>
         <button type="button" class="feat" data-go="emendas"><h4>Emendas de autoria</h4><p>Quanto cada parlamentar empenhou, quanto saiu do caixa de fato e para qual município ou órgão o dinheiro foi.</p><span class="vai">Ver emendas &rarr;</span></button>
+        <button type="button" class="feat" data-go="vinculos"><h4>Quem é dono da empresa</h4><p>Quadro societário das empresas que receberam dinheiro público, cruzado com os parlamentares e com quem financiou as campanhas deles.</p><span class="vai">Ver vínculos &rarr;</span></button>
         <button type="button" class="feat" data-go="cota"><h4>Para onde vai a cota</h4><p>Ranking de gasto por deputado e as empresas que mais receberam, com CNPJ, somadas as notas de todos os gabinetes.</p><span class="vai">Ver a cota &rarr;</span></button>
         <button type="button" class="feat" data-go="ligacoes"><h4>Ligações gabinete–empresa</h4><p>As empresas que concentraram muito dinheiro em poucos gabinetes, com o desenho de quem pagou quanto.</p><span class="vai">Ver ligações &rarr;</span></button>
         <button type="button" class="feat" data-go="composicao"><h4>Composição das casas</h4><p>Quantos parlamentares cada partido e cada estado têm hoje, calculado sobre os registros coletados.</p><span class="vai">Ver composição &rarr;</span></button>
@@ -469,6 +471,7 @@ footer .wrap{padding-block:24px;font-size:12.5px;color:var(--muted);display:grid
       <button type="button" class="voltar" data-back="parlamentares">&larr; Todos os parlamentares</button>
       <div class="card ficha" id="pl-ficha"></div>
       <div id="pl-patr"></div>
+      <div id="pl-vinculos"></div>
       <div id="pl-campanha"></div>
       <div id="pl-emendas"></div>
       <div id="pl-votos"></div>
@@ -606,6 +609,51 @@ footer .wrap{padding-block:24px;font-size:12.5px;color:var(--muted);display:grid
         <div><p class="eyebrow">Por área</p><div class="tablewrap"><table id="em-funcoes"></table></div></div>
         <div><p class="eyebrow">Por destino</p><div class="tablewrap"><table id="em-locais"></table></div></div>
       </div>
+    </div>
+  </section>
+
+  <!-- ============ VÍNCULOS ============ -->
+  <section class="view" id="view-vinculos" hidden>
+    <div class="statstrip" id="vi-stats"></div>
+    <div class="sec">
+      <div class="prosa" style="max-width:74ch">
+        <p>Esta página existe por causa desta aba. Com o <strong>quadro societário</strong> das empresas que o site já acompanha, dá para perguntar o que nenhuma base responde sozinha: <strong>quem é o dono da empresa que recebeu o dinheiro?</strong></p>
+        <p>O cruzamento usa nome <em>e</em> os seis dígitos do meio do CPF. A Receita e o TSE publicam o CPF exatamente nesse formato mascarado, o que permite a conferência sem ninguém manipular CPF inteiro. <strong>Quando só o nome bate, está escrito que só o nome bate.</strong></p>
+      </div>
+    </div>
+
+    <div class="sec rule">
+      <header><div><h2>O parlamentar é sócio da empresa</h2>
+        <small>Nome do sócio igual ao do parlamentar, com o CPF parcial conferido quando a fonte publica</small></div></header>
+      <div class="tablewrap"><table id="vi-parl"></table></div>
+      <p class="hint">Ser sócio de empresa é permitido e a maioria declara isso ao TSE. O que esta tabela mostra é a <b>coincidência entre ser dono e ser quem paga</b>: a campanha ou o gabinete pagou uma empresa do próprio parlamentar. Senador não tem CPF publicado pela fonte, então ali a conferência para no nome.</p>
+    </div>
+
+    <div class="sec rule">
+      <header><div><h2>O doador é sócio de quem recebeu</h2>
+        <small>Pessoa que doou para a campanha e é sócia de empresa paga pelo mesmo parlamentar</small></div></header>
+      <div class="filtros">
+        <label>Buscar<span class="busca"><svg class="lupa" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><line x1="10.9" y1="10.9" x2="14.4" y2="14.4"/></svg><input type="search" id="vi-qd" placeholder="sócio, empresa ou parlamentar" autocomplete="off"></span></label>
+      </div>
+      <p class="achou" id="vi-doador-achou"></p>
+      <div class="tablewrap"><table id="vi-doador"></table></div>
+      <p class="hint">O dinheiro faz o caminho completo: a pessoa doa para a campanha, e a empresa dela recebe de volta — da própria campanha ou da cota do mandato.</p>
+    </div>
+
+    <div class="sec rule">
+      <header><div><h2>Empresa com cadastro que merece olhada</h2>
+        <small id="vi-cad-sub"></small></div></header>
+      <div class="filtros">
+        <label>Buscar<span class="busca"><svg class="lupa" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><line x1="10.9" y1="10.9" x2="14.4" y2="14.4"/></svg><input type="search" id="vi-qc" placeholder="empresa, CNPJ ou parlamentar" autocomplete="off"></span></label>
+        <label>Mostrar<select id="vi-filtro">
+          <option value="">Tudo</option>
+          <option value="sit">Só situação irregular</option>
+          <option value="nova">Só empresa recém-aberta</option>
+        </select></label>
+      </div>
+      <p class="achou" id="vi-cad-achou"></p>
+      <div class="tablewrap"><table id="vi-cadastro"></table></div>
+      <p class="hint">Situação cadastral é de hoje, não da data da nota: uma empresa pode ter sido baixada depois de prestar o serviço, o que é comum e legítimo. A data de abertura, essa, é fixa.</p>
     </div>
   </section>
 
@@ -930,7 +978,7 @@ el("inicio-stats").innerHTML=
 
 var NAO_E=[
  ["Não acusa ninguém de nada.","Gasto de cota é verba de gabinete prevista em lei. Aparecer no topo do ranking significa ter usado a cota, não ter feito algo irregular."],
- ["Não cruza quadro societário, ainda.","O dump de CNPJ da Receita não está conectado. Sem ele não dá para saber quem são os sócios das empresas fornecedoras — e inventar um vínculo seria difamação."],
+ ["Não confunde coincidência com prova.","Os vínculos societários saem de nome mais os seis dígitos do CPF que a Receita e o TSE publicam. Quando só o nome bate, está escrito que só o nome bate — homônimo é comum em base de milhões."],
  ["Não é um ranking de bons e maus.","Não há nota de parlamentar. Há registro oficial, com link para a fonte, para você conferir."],
  ["Não substitui a fonte.","Toda ficha leva à página oficial da pessoa na Câmara ou no Senado. Em caso de divergência, a fonte manda."]
 ];
@@ -938,7 +986,6 @@ el("inicio-naoe").innerHTML=NAO_E.map(function(l){
   return '<div><i>&#9888;</i><span><b>'+esc(l[0])+'</b> '+esc(l[1])+'</span></div>';}).join("");
 
 var FALTA=[
- ["Empresas onde a pessoa é ou foi sócia.","Vem do dump mensal de CNPJ da Receita Federal, com o quadro societário completo. É o que falta para ligar a empresa à pessoa, e não só ao gabinete."],
  ["Contratos federais e empresas punidas.","O Portal da Transparência também publica contratos e o cadastro de empresas inidôneas (CEIS). Entram na próxima rodada, com a mesma chave que já trouxe as emendas."],
  ["A cota dos senadores.","O CEAPS do Senado é publicado noutra base. Enquanto não entrar, a página de cota só tem a Câmara."],
  ["Nomeações em diários oficiais.","Parentes e aliados nomeados em prefeituras aparecem no Querido Diário, que ainda não está conectado."]
@@ -947,7 +994,7 @@ el("pl-falta").innerHTML=FALTA.map(function(l){
   return '<div><i>&#9888;</i><span><b>'+esc(l[0])+'</b> '+esc(l[1])+'</span></div>';}).join("");
 
 /* ---------- navegação ---------- */
-var VIEWS=["inicio","parlamentares","patrimonio","campanha","votacoes","emendas","cota","ligacoes","composicao","fontes"];
+var VIEWS=["inicio","parlamentares","patrimonio","campanha","votacoes","emendas","vinculos","cota","ligacoes","composicao","fontes"];
 var current="inicio", sel=null;
 function go(name,opts){
   if(VIEWS.indexOf(name)<0) name="inicio";
@@ -965,6 +1012,7 @@ function go(name,opts){
   if(name==="campanha") renderCampanha();
   if(name==="votacoes") renderVotacoes();
   if(name==="emendas") renderEmendas();
+  if(name==="vinculos") renderVinculos();
   if(name==="cota") renderCota();
   if(name==="ligacoes") renderLigacoes();
   if(name==="composicao") renderComposicao();
@@ -1129,10 +1177,40 @@ function renderFicha(){
     catch(e){ selecionar(); }
   });
   renderPatrBloco(p);
+  renderVinculoBloco(p);
   renderCampanhaBloco(p);
   renderEmendaBloco(p);
   renderVotoBloco(p);
   renderCotaPessoal(p);
+}
+
+/* --- ficha: vínculos societários encontrados para esta pessoa --- */
+function renderVinculoBloco(p){
+  var alvo=el("pl-vinculos");
+  var meusS=VINC.socio_parlamentar.filter(function(x){return x.id===p.id;});
+  var meusD=VINC.socio_doador.filter(function(x){return x.id===p.id;});
+  if(!meusS.length&&!meusD.length){ alvo.innerHTML=""; return; }
+  alvo.innerHTML='<div class="sec" style="margin-bottom:18px">'
+   +'<header><div><h2>Vínculos societários</h2>'
+   +'<small>Cruzamento do quadro societário da Receita com o que esta pessoa pagou e recebeu</small></div></header>'
+   +(meusS.length?'<div class="card naoe" style="margin-bottom:12px">'
+     +meusS.map(function(x){
+        return '<div><i>&#9888;</i><span><b>Sócio de '+esc(x.empresa)+'</b> ('+esc(x.qual||"sócio")+'). '
+          +(x.cpf_confere?'Nome e CPF parcial conferem com a Receita. ':'O nome confere; '
+            +(x.cpf_disponivel?'o CPF parcial, não. ':'a fonte não publica CPF para conferir. '))
+          +(x.campanha?'A campanha dele pagou '+brl(x.campanha)+' a esta empresa. ':'')
+          +(x.cota?'O gabinete pagou '+brl(x.cota)+' pela cota. ':'')
+          +'<button type="button" class="linkbtn" data-cnpj="'+esc(x.cnpj)+'">ver a empresa</button></span></div>';
+     }).join("")+'</div>':'')
+   +(meusD.length?'<div class="tablewrap"><table><thead><tr><th>Doador que é sócio</th><th>Empresa dele</th>'
+     +'<th class="r">Doou</th><th class="r">A empresa recebeu</th></tr></thead><tbody>'
+     +meusD.map(function(x){
+        return '<tr class="alerta"><td>'+esc(x.socio)+'<br><span class="hint">'+esc(x.qual||"sócio")+'</span></td>'
+          +'<td><button type="button" class="linkbtn" data-cnpj="'+esc(x.cnpj)+'">'+esc(x.empresa)+'</button></td>'
+          +'<td class="r">'+brl(x.doou)+'</td><td class="r">'+brl(x.cota+x.campanha)+'</td></tr>';
+     }).join("")+'</tbody></table></div>':'')
+   +'<p class="hint">Nada aqui é acusação. São coincidências de nome e CPF parcial entre bases públicas, publicadas para serem conferidas na fonte.</p>'
+   +'</div>';
 }
 
 /* --- ficha: quem bancou a campanha e para quem a campanha pagou --- */
@@ -1591,6 +1669,8 @@ var LENTES=[
   legenda:"Cada satélite é uma empresa que recebeu dinheiro da cota deste gabinete. O número dentro do quadrado é em quantos gabinetes ela aparece entre os 10 maiores — quanto menor, mais concentrada."},
  {id:"gab",nome:"Gabinetes que pagaram a empresa",centro:"emp",
   legenda:"Cada satélite é um gabinete que teve esta empresa entre os 10 maiores fornecedores."},
+ {id:"socios",nome:"Sócios da empresa",centro:"emp",
+  legenda:"Cada satélite é um sócio desta empresa, pelo quadro societário da Receita Federal. O valor mostrado é o que a empresa recebeu da cota — o sócio não recebeu isso, a empresa dele recebeu."},
  {id:"cat",nome:"Categorias de gasto",centro:"pol",
   legenda:"Em que a cota deste gabinete foi gasta, pela classificação da própria Câmara."},
  {id:"bens",nome:"Composição do patrimônio",centro:"pol",
@@ -1646,6 +1726,14 @@ function satelites(){
       return {tipo:"pol",id:d.id,nome:p2.nome,sub:p2.partido+"/"+p2.uf,valor:vd(d),parl:p2};
     }).filter(function(s){return s.valor>0;})
       .sort(function(a,b){return b.valor-a.valor;}).slice(0,n);
+  }
+  if(L.id==="socios"){
+    var fe=fornPorCnpj(foco.id), ee=empresaDe(foco.id);
+    if(!ee||!(ee.q||[]).length) return [];
+    var tot=vd(fe)||0;
+    return ee.q.slice(0,n).map(function(s){
+      return {tipo:"leaf",nome:s[0],sub:s[2],valor:tot/ee.q.length,socio:s};
+    });
   }
   if(L.id==="cat"){
     var p3=parlPorId(foco.id); if(!p3||!p3.cota) return [];
@@ -2045,12 +2133,14 @@ function detEmpresa(cnpj){
      +'<div><b>'+(vd(maior)/Math.max(vtot,1)*100).toFixed(0)+'%</b><span>vêm do maior pagante</span></div></div>'
    +'<div class="oque"><p><b>O que este número é.</b> A soma das notas fiscais que gabinetes da Câmara apresentaram tendo esta empresa como fornecedora, dentro da cota parlamentar, '+rotuloPeriodo()+'. Cada nota foi declarada pelo próprio gabinete e paga com dinheiro público.'
      +(PERIODO!=="all"?' No mandato inteiro são '+brl(f.valor)+'.':'')+'</p>'
-     +'<p><b>Por que o CNPJ importa.</b> É a chave que ligaria esta empresa ao quadro societário da Receita Federal — quem são os sócios, desde quando, e se algum deles tem relação com quem assinou a nota. Essa base ainda não está conectada, então o elo para por aqui.</p>'
+     +'<p><b>Por que o CNPJ importa.</b> É a chave que liga esta empresa ao quadro societário da Receita Federal — quem são os sócios e desde quando. Esse quadro está logo abaixo, e é por ele que o site consegue perguntar se algum sócio tem relação com quem assinou a nota.</p>'
      +'<p><b>Leitura da concentração.</b> '+(g<=3
         ? 'Receber de apenas '+g+' gabinete'+(g>1?'s':'')+' é concentração alta. Não é irregularidade, mas é o recorte onde vale olhar primeiro.'
         : g<=CONC
         ? 'Atender '+g+' gabinetes ainda é concentrado. Fornecedores de serviço local costumam ficar nesta faixa.'
         : 'Atender '+g+' gabinetes é pulverizado — tipicamente aérea, correio ou telefonia. Não liga ninguém a ninguém.')+'</p></div>'
+   +'<div><p class="eyebrow" style="margin-bottom:9px">Quem é dono desta empresa</p>'
+     +nomeDivergente(f.cnpj,f.nome)+blocoSocios(f.cnpj)+alertasDaEmpresa(f.cnpj)+'</div>'
    +'<div><p class="eyebrow" style="margin-bottom:9px">Ano a ano</p>'
      +barraSerie(ANOS_COTA.map(function(y){return {rot:y,valor:(f.anos||{})[y]||0};}))+'</div>'
    +'<div><p class="eyebrow" style="margin-bottom:9px">Maior pagante</p>'
@@ -2186,6 +2276,53 @@ function detVotacao(i){
    }).join("")+'</tbody></table></div></div>';
 }
 
+/* detalhe de um sócio: onde mais esse nome aparece */
+function detSocio(s,cnpj){
+  var nome=s.socio[0], cpf6=s.socio[1], e=empresaDe(cnpj);
+  var outras=[];
+  Object.keys(EMPRESAS).forEach(function(cn){
+    if(cn===String(cnpj).replace(/\D/g,"")) return;
+    (EMPRESAS[cn].q||[]).forEach(function(q){
+      if(q[0]===nome&&(!cpf6||!q[1]||q[1]===cpf6)) outras.push({cnpj:cn,emp:EMPRESAS[cn],qual:q[2]});
+    });
+  });
+  return cabModal(nome,'sócio de '+esc((e&&e.r)||cnpjFmt(cnpj)))
+   +'<div class="kpis" style="border:0;padding:0">'
+     +'<div><b>'+esc(s.socio[2]||"sócio")+'</b><span>qualificação na empresa</span></div>'
+     +'<div><b class="mono">'+(cpf6?'***.'+esc(cpf6.slice(0,3))+'.'+esc(cpf6.slice(3))+'-**':'—')+'</b><span>CPF como a Receita publica</span></div>'
+     +'<div><b class="num">'+nf(outras.length+1)+'</b><span>empresas deste site com este nome</span></div>'
+   +'</div>'
+   +'<div class="oque"><p><b>O que este nome prova.</b> Nada sozinho. Nome é homônimo com frequência, e o CPF vem mascarado na origem — seis dígitos do meio. O site só afirma vínculo quando <b>nome e esses seis dígitos batem ao mesmo tempo</b>, e mesmo aí diz de onde cada metade veio.</p></div>'
+   +alertasDaEmpresa(cnpj)
+   +(outras.length?'<div><p class="eyebrow" style="margin:14px 0 9px">Outras empresas com este mesmo sócio</p>'
+     +'<div class="tablewrap"><table><thead><tr><th>Empresa</th><th>Situação</th><th>Papel</th></tr></thead><tbody>'
+     +outras.slice(0,20).map(function(o){
+        return '<tr><td><button type="button" class="linkbtn" data-cnpj="'+esc(o.cnpj)+'">'+esc(o.emp.r)+'</button>'
+          +'<br><span class="hint mono">'+cnpjFmt(o.cnpj)+'</span></td>'
+          +'<td>'+chipSituacao(o.emp.s)+'</td><td>'+esc(o.qual||"")+'</td></tr>';
+     }).join("")+'</tbody></table></div></div>':'');
+}
+
+/* empresa que não está na cota: só o cadastro e quem a pagou na campanha */
+function detEmpresaSoCadastro(cnpj){
+  var cn=String(cnpj).replace(/\D/g,""), e=empresaDe(cn), c=CAMPFORN[cn];
+  if(!e&&!c) return "";
+  return cabModal((e&&e.r)||(c&&c.nome)||"—",'<span class="mono">'+cnpjFmt(cn)+'</span>')
+   +(c?'<div class="kpis" style="border:0;padding:0">'
+      +'<div><b>'+brlCurto(c.total)+'</b><span>recebido de campanhas</span></div>'
+      +'<div><b class="num">'+nf(c.quem.length)+'</b><span>campanhas que a pagaram</span></div></div>':'')
+   +'<div><p class="eyebrow" style="margin:14px 0 9px">Quem é dono</p>'
+     +blocoSocios(cn)+alertasDaEmpresa(cn)+'</div>'
+   +(c?'<div><p class="eyebrow" style="margin:14px 0 9px">Campanhas que pagaram</p>'
+      +'<div class="tablewrap"><table><thead><tr><th>Parlamentar</th><th>Eleição</th>'
+      +'<th class="r">Pagou</th></tr></thead><tbody>'
+      +c.quem.slice(0,20).map(function(q){
+        var p=parlPorId(q.id); if(!p) return "";
+        return '<tr><td>'+linhaParl(p)+'</td><td class="mono">'+esc(q.ano)+'</td>'
+          +'<td class="r">'+brl(q.valor)+'</td></tr>';
+      }).join("")+'</tbody></table></div></div>':'');
+}
+
 /* detalhe de uma empresa contratada pela campanha */
 function detCampForn(s,pid){
   var p=parlPorId(pid), cn=(s.sub||"").replace(/\D/g,"");
@@ -2197,6 +2334,8 @@ function detCampForn(s,pid){
      +(c?'<div><b class="num">'+nf(c.quem.length)+'</b><span>campanhas que a contrataram</span></div>':'')
      +(naCota?'<div><b>'+brlCurto(naCota.valor)+'</b><span>recebido da cota parlamentar</span></div>':'')
    +'</div>'
+   +'<div><p class="eyebrow" style="margin:14px 0 9px">Quem é dono</p>'
+     +blocoSocios(cn)+alertasDaEmpresa(cn)+'</div>'
    +(naCota
      ?'<p class="naoe" style="margin-top:14px"><b>Mesma empresa nos dois lados.</b> Ela foi paga pela campanha eleitoral e, já no mandato, recebeu da cota parlamentar — '
        +nf(naCota.gabinetes)+' gabinete(s) no total. Isso não é irregularidade por si só: pode ser a gráfica de sempre. É onde a checagem começa.</p>'
@@ -2286,6 +2425,12 @@ document.addEventListener("click",function(e){
   if(vv){ abrirDetalhe(detVotacao(+vv.dataset.votacao)); return; }
   var dd=e.target.closest("[data-doador]");
   if(dd){ abrirDetalhe(detDoador(dd.dataset.doador)); return; }
+  var cc=e.target.closest("[data-cnpj]");
+  if(cc){
+    var cn=cc.dataset.cnpj;
+    abrirDetalhe(fornPorCnpj(cn)?detEmpresa(cn):detEmpresaSoCadastro(cn));
+    return;
+  }
   var c=e.target.closest("[data-centrar]");
   if(c){
     var parte=c.dataset.centrar, tipo=parte.slice(0,parte.indexOf(":")), id=parte.slice(parte.indexOf(":")+1);
@@ -2302,6 +2447,7 @@ document.addEventListener("click",function(e){
       if(s.tipo==="emp") abrirDetalhe(detEmpresa(s.id));
       else if(s.tipo==="pol") abrirDetalhe(detParlamentar(s.id));
       else if(lente==="bens") abrirDetalhe(detBem(s.nome,foco.id));
+      else if(lente==="socios") abrirDetalhe(detSocio(s,foco.id));
       else if(lente==="doador") abrirDetalhe(detDoador((s.doador.doc||("n:"+s.doador.nome))+"|"+ANOS_CAMP[ANOS_CAMP.length-1]));
       else if(lente==="campforn") abrirDetalhe(detCampForn(s,foco.id));
       else if(lente==="emenda") abrirDetalhe(detDestino(s.nome,foco.id));
@@ -2654,6 +2800,145 @@ function renderEmendas(){
 ["em-ord","em-ano"].forEach(function(id){el(id).addEventListener("change",renderEmendas);});
 el("em-q").addEventListener("input",renderEmendas);
 
+/* ---------- quadro societário e os vínculos que ele revela ---------- */
+var EMPRESAS=DADOS.empresas||{};
+var VINC=DADOS.vinculos||{socio_parlamentar:[],socio_doador:[],cadastro:[]};
+function empresaDe(cnpj){ return EMPRESAS[String(cnpj).replace(/\D/g,"")]||null; }
+function chipSituacao(sit){
+  var s=(sit||"").toUpperCase();
+  var cls=s==="ATIVA"?"ok":(s?"crit":"");
+  return '<span class="chip '+cls+'">'+(cls?'<i class="dot"></i>':'')+esc(sit||"sem cadastro")+'</span>';
+}
+function blocoSocios(cnpj){
+  var e=empresaDe(cnpj);
+  if(!e) return '<p class="hint">Esta empresa não foi encontrada na base de CNPJ.</p>';
+  var q=e.q||[];
+  return '<div class="meta2" style="margin-bottom:10px">'+chipSituacao(e.s)
+    +'<span class="chip">'+esc(e.c||"sem CNAE")+'</span>'
+    +(e.m?'<span class="chip">'+esc(e.m)+'/'+esc(e.u)+'</span>':'')
+    +(e.a?'<span class="chip">aberta em '+esc(dataBR(e.a))+'</span>':'')+'</div>'
+    +(q.length
+      ?'<div class="tablewrap"><table><thead><tr><th>Sócio</th><th>CPF parcial</th><th>Qualificação</th></tr></thead><tbody>'
+       +q.map(function(s){
+          return '<tr><td>'+esc(s[0])+'</td><td class="mono">'+(s[1]?'***.'+esc(s[1].slice(0,3))+'.'+esc(s[1].slice(3))+'-**':'—')+'</td>'
+            +'<td>'+esc(s[2]||"")+'</td></tr>';
+        }).join("")+'</tbody></table></div>'
+       +(e.n>q.length?'<p class="hint">'+nf(e.n-q.length)+' sócio(s) a mais não mostrados.</p>':'')
+      :'<p class="hint">Sem quadro societário publicado — é o caso de MEI, de empresa individual e de órgão público.</p>');
+}
+/* o nome digitado na nota fiscal nem sempre é a razão social registrada */
+function nomeDivergente(cnpj,nomeNaNota){
+  var e=empresaDe(cnpj);
+  if(!e||!e.r||!nomeNaNota) return "";
+  if(semAcento(e.r).replace(/[^a-z0-9]/g,"")===semAcento(nomeNaNota).replace(/[^a-z0-9]/g,"")) return "";
+  return '<p class="hint" style="margin-bottom:10px">Na nota fiscal esta empresa aparece como '
+    +'<b>'+esc(nomeNaNota)+'</b>; na Receita, o mesmo CNPJ está registrado como <b>'+esc(e.r)+'</b>. '
+    +'Nome de fantasia diferente da razão social é comum — o CNPJ é o que manda.</p>';
+}
+
+/* avisos que o cadastro da empresa levanta sozinho */
+function alertasDaEmpresa(cnpj){
+  var cn=String(cnpj).replace(/\D/g,""), out=[];
+  VINC.socio_parlamentar.forEach(function(x){
+    if(x.cnpj!==cn) return;
+    var p=parlPorId(x.id);
+    out.push('<b>'+esc(p?p.nome:x.id)+' é sócio desta empresa.</b> '
+      +(x.cpf_confere?'Nome e CPF parcial batem com os da Receita.'
+                     :'O nome bate; '+(x.cpf_disponivel?'o CPF parcial, não.':'a fonte não publica o CPF para conferir.')));
+  });
+  VINC.socio_doador.forEach(function(x){
+    if(x.cnpj!==cn) return;
+    var p=parlPorId(x.id);
+    out.push('<b>'+esc(x.socio)+', sócio daqui, doou '+brl(x.doou)+' para a campanha de '
+      +esc(p?p.nome:x.id)+'</b> — e esta empresa recebeu dinheiro do mesmo parlamentar.');
+  });
+  VINC.cadastro.forEach(function(x){
+    if(x.cnpj!==cn) return;
+    out.push('<b>No cadastro:</b> '+x.motivos.map(esc).join("; ")+'.');
+  });
+  if(!out.length) return "";
+  return '<div class="card naoe" style="margin-top:12px">'
+    +out.map(function(t){return '<div><i>&#9888;</i><span>'+t+'</span></div>';}).join("")+'</div>';
+}
+function renderVinculos(){
+  var comCPF=VINC.socio_parlamentar.filter(function(x){return x.cpf_confere;}).length;
+  var irreg=VINC.cadastro.filter(function(x){
+    return x.motivos.some(function(m){return m.indexOf("situação")===0;});}).length;
+  el("vi-stats").innerHTML=
+    '<div><b class="num">'+nf(Object.keys(EMPRESAS).length)+'</b><span>empresas com cadastro lido</span></div>'
+   +'<div><b class="num">'+nf(VINC.socio_parlamentar.length)+'</b><span>em que o parlamentar é sócio</span></div>'
+   +'<div><b class="num">'+nf(comCPF)+'</b><span>com CPF parcial conferido</span></div>'
+   +'<div><b class="num">'+nf(VINC.socio_doador.length)+'</b><span>doador sócio de quem recebeu</span></div>'
+   +'<div><b class="num">'+nf(irreg)+'</b><span>pagas com cadastro irregular</span></div>';
+
+  el("vi-parl").innerHTML=VINC.socio_parlamentar.length
+    ?'<thead><tr><th>Parlamentar</th><th>Empresa</th><th>Papel na empresa</th><th>Conferência</th>'
+    +'<th class="r">Pago pela campanha</th><th class="r">Pago pela cota</th></tr></thead><tbody>'
+    +VINC.socio_parlamentar.map(function(x){
+      var p=parlPorId(x.id);
+      return '<tr class="alerta"><td>'+(p?linhaParl(p):esc(x.id))
+        +(p?'<br><span class="hint mono">'+esc(p.partido)+'/'+esc(p.uf)+'</span>':'')+'</td>'
+        +'<td><button type="button" class="linkbtn" data-cnpj="'+esc(x.cnpj)+'">'+esc(x.empresa)+'</button>'
+        +'<br><span class="hint mono">'+cnpjFmt(x.cnpj)+'</span></td>'
+        +'<td>'+esc(x.qual||"sócio")+(x.desde?'<br><span class="hint">desde '+esc(dataBR(x.desde))+'</span>':'')+'</td>'
+        +'<td>'+(x.cpf_confere
+            ?'<span class="chip crit"><i class="dot"></i>nome e CPF batem</span>'
+            :'<span class="chip warn"><i class="dot"></i>'+(x.cpf_disponivel?"só o nome bate":"CPF não publicado pela fonte")+'</span>')+'</td>'
+        +'<td class="r">'+(x.campanha?brl(x.campanha):"—")+'</td>'
+        +'<td class="r">'+(x.cota?brl(x.cota):(x.cota_outros?'<span class="hint">'+brlCurto(x.cota_outros)+' de outros</span>':"—"))+'</td></tr>';
+    }).join("")+'</tbody>'
+    :'<tbody><tr><td class="empty">Nenhum caso encontrado com os critérios acima.</td></tr></tbody>';
+
+  var qd=el("vi-qd").value;
+  var ld=VINC.socio_doador.filter(function(x){
+    var p=parlPorId(x.id);
+    return casaBusca(qd,x.socio+" "+x.empresa+" "+x.cnpj+" "+(p?p.nome+" "+p.partido+" "+p.uf:""));
+  });
+  el("vi-doador-achou").textContent=semAcento(qd).trim()
+    ? nf(ld.length)+(ld.length===1?" caso encontrado":" casos encontrados") : "";
+  el("vi-doador").innerHTML=ld.length
+    ?'<thead><tr><th>Doador, que é sócio</th><th>Empresa dele</th><th>Parlamentar</th>'
+    +'<th class="r">Doou</th><th class="r">A empresa recebeu</th></tr></thead><tbody>'
+    +ld.slice(0,60).map(function(x){
+      var p=parlPorId(x.id), tot=x.cota+x.campanha;
+      return '<tr class="alerta"><td>'+esc(x.socio)+'<br><span class="hint">'+esc(x.qual||"sócio")+'</span></td>'
+        +'<td><button type="button" class="linkbtn" data-cnpj="'+esc(x.cnpj)+'">'+esc(x.empresa)+'</button>'
+        +'<br><span class="hint mono">'+cnpjFmt(x.cnpj)+'</span></td>'
+        +'<td>'+(p?linhaParl(p):esc(x.id))+'</td>'
+        +'<td class="r">'+brl(x.doou)+'</td>'
+        +'<td class="r">'+brl(tot)+'<br><span class="hint">'
+          +(x.cota?brlCurto(x.cota)+' de cota':'')+(x.cota&&x.campanha?' · ':'')
+          +(x.campanha?brlCurto(x.campanha)+' da campanha':'')+'</span></td></tr>';
+    }).join("")+'</tbody>'
+    :'<tbody><tr><td class="empty">Nenhum caso corresponde a essa busca.</td></tr></tbody>';
+
+  var qc=el("vi-qc").value, filtro=el("vi-filtro").value;
+  var lc=VINC.cadastro.filter(function(x){
+    if(filtro==="sit"&&!x.motivos.some(function(m){return m.indexOf("situação")===0;})) return false;
+    if(filtro==="nova"&&!x.motivos.some(function(m){return m.indexOf("aberta")===0;})) return false;
+    var nomes=x.quem.map(function(i){var p=parlPorId(i);return p?p.nome:"";}).join(" ");
+    return casaBusca(qc,x.empresa+" "+x.cnpj+" "+nomes);
+  });
+  el("vi-cad-sub").textContent=nf(VINC.cadastro.length)+" empresas pagas com a cota têm algo no cadastro que destoa";
+  el("vi-cad-achou").textContent=(semAcento(qc).trim()||filtro)
+    ? nf(lc.length)+(lc.length===1?" empresa encontrada":" empresas encontradas") : "";
+  el("vi-cadastro").innerHTML=lc.length
+    ?'<thead><tr><th>Empresa</th><th>Situação</th><th>O que destoa</th>'
+    +'<th class="r">Recebeu da cota</th><th class="r">Gabinetes</th></tr></thead><tbody>'
+    +lc.slice(0,60).map(function(x){
+      return '<tr><td><button type="button" class="linkbtn" data-cnpj="'+esc(x.cnpj)+'">'+esc(x.empresa)+'</button>'
+        +'<br><span class="hint mono">'+cnpjFmt(x.cnpj)+'</span></td>'
+        +'<td>'+chipSituacao(x.situacao)+'</td>'
+        +'<td>'+x.motivos.map(esc).join("<br>")+'</td>'
+        +'<td class="r">'+brl(x.cota)+'</td>'
+        +'<td class="r">'+nf(x.gabinetes)+'</td></tr>';
+    }).join("")+'</tbody>'
+    :'<tbody><tr><td class="empty">Nenhuma empresa corresponde a esse filtro.</td></tr></tbody>';
+}
+el("vi-qd").addEventListener("input",renderVinculos);
+el("vi-qc").addEventListener("input",renderVinculos);
+el("vi-filtro").addEventListener("change",renderVinculos);
+
 /* ---------- composição ---------- */
 function renderComposicao(){
   var dados=LISTA_PART, max=dados[0].total, topo=Math.ceil(max/10)*10;
@@ -2699,12 +2984,13 @@ function renderFontes(){
    ["TSE — bens de candidato","Patrimônio declarado em "+ANOS_PAT.join(", ")+", casado por CPF","Download aberto",nf(COM_PATR.length)+" casados"],
    ["TSE — prestação de contas eleitorais","Doações recebidas e empresas contratadas nas campanhas de "+ANOS_CAMP.join(" e "),"Download aberto",nf(COM_CAMP.length)+" com contas"],
    ["Câmara dos Deputados — votações","Voto nominal de cada deputado no plenário e a orientação de cada bancada","Sem autenticação",nf(VOT?VOT.total_nominais:0)+" votações"],
-   ["CGU — Portal da Transparência","Emendas de autoria: empenhado, pago, destino e área","Token pessoal gov.br",nf(DADOS.emendas_coletadas||0)+" emendas"]
+   ["CGU — Portal da Transparência","Emendas de autoria: empenhado, pago, destino e área","Token pessoal gov.br",nf(DADOS.emendas_coletadas||0)+" emendas"],
+   ["Receita Federal — CNPJ e quadro societário","Razão social, situação cadastral, CNAE e os sócios de cada empresa citada","minhareceita.org · brasilapi.com.br",nf((DADOS.empresas_meta||{}).respondidos||0)+" empresas"]
   ];
   var FALTAM=[
-   ["Receita Federal — dados públicos CNPJ","Quadro societário: fecharia o circuito empresa → sócio → político","dadosabertos.rfb.gov.br","host bloqueado"],
    ["Senado — CEAPS","A cota dos senadores, hoje ausente: só a da Câmara está aqui","senado.leg.br/transparencia","não conectada"],
    ["CGU — contratos e sanções","Contratos federais das mesmas empresas e empresas punidas (CEIS)","api.portaldatransparencia.gov.br","próxima rodada"],
+   ["Senado — votações nominais","Como cada senador votou; hoje só a Câmara está coberta","legis.senado.leg.br","não conectada"],
    ["Querido Diário","Nomeações e exonerações em diários oficiais municipais","queridodiario.ok.org.br","não conectada"]
   ];
   el("fon-ativas").innerHTML='<thead><tr><th>Base</th><th>O que traz</th><th>Acesso</th><th class="r">Volume</th><th>Situação</th></tr></thead><tbody>'
