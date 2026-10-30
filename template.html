@@ -648,6 +648,22 @@ footer .wrap{padding-block:24px;font-size:12.5px;color:var(--muted);display:grid
     </div>
 
     <div class="sec rule">
+      <header><div><h2>Filtrar tudo nesta página</h2>
+        <small>Vale para as três tabelas abaixo</small></div></header>
+      <div class="filtros">
+        <label>Parlamentar<span class="busca"><svg class="lupa" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><line x1="10.9" y1="10.9" x2="14.4" y2="14.4"/></svg><input type="search" id="vi-qp" placeholder="nome do parlamentar" autocomplete="off"></span></label>
+        <label>Partido<select id="vi-partido"><option value="">Todos</option></select></label>
+        <label>UF<select id="vi-uf"><option value="">Todas</option></select></label>
+        <label>Ordenar<select id="vi-ord">
+          <option value="valor">Maior valor envolvido</option>
+          <option value="nome">Nome do parlamentar (A–Z)</option>
+          <option value="partido">Partido</option>
+        </select></label>
+      </div>
+      <p class="achou" id="vi-filtro-achou"></p>
+    </div>
+
+    <div class="sec rule">
       <header><div><h2>O parlamentar é sócio da empresa</h2>
         <small>Nome do sócio igual ao do parlamentar, com o CPF parcial conferido quando a fonte publica</small></div></header>
       <div class="tablewrap"><table id="vi-parl"></table></div>
@@ -3131,11 +3147,63 @@ function renderVinculos(){
    +'<div><b class="num">'+nf(VINC.socio_doador.length)+'</b><span>doador sócio de quem recebeu</span></div>'
    +'<div><b class="num">'+nf(irreg)+'</b><span>pagas com cadastro irregular</span></div>';
 
-  el("vi-parl").innerHTML=VINC.socio_parlamentar.length
+  /* os seletores saem dos próprios achados: partido que não aparece em
+     vínculo nenhum não tem por que estar na lista */
+  if(!el("vi-partido").dataset.pronto){
+    var ps={}, us={};
+    [VINC.socio_parlamentar,VINC.socio_doador].forEach(function(l){
+      l.forEach(function(x){ var p=parlPorId(x.id); if(p){ps[p.partido]=1;us[p.uf]=1;} });
+    });
+    VINC.cadastro.forEach(function(x){
+      x.quem.forEach(function(i){ var p=parlPorId(i); if(p){ps[p.partido]=1;us[p.uf]=1;} });
+    });
+    el("vi-partido").innerHTML='<option value="">Todos</option>'
+      +Object.keys(ps).sort().map(function(s){return '<option>'+esc(s)+'</option>';}).join("");
+    el("vi-uf").innerHTML='<option value="">Todas</option>'
+      +Object.keys(us).sort().map(function(s){return '<option>'+esc(s)+'</option>';}).join("");
+    el("vi-partido").dataset.pronto="1";
+  }
+  var fqp=el("vi-qp").value, fpart=el("vi-partido").value, fuf=el("vi-uf").value, ford=el("vi-ord").value;
+  var filtrando=!!(semAcento(fqp).trim()||fpart||fuf);
+  function serve(p){
+    if(!p) return !filtrando;
+    if(fpart&&p.partido!==fpart) return false;
+    if(fuf&&p.uf!==fuf) return false;
+    return casaBusca(fqp,p.nome+" "+(p.nome_civil||"")+" "+p.partido+" "+p.uf);
+  }
+  function peneira(lista,quemId){
+    var r=lista.filter(function(x){
+      var ids=quemId(x);
+      return ids.some(function(i){return serve(parlPorId(i));});
+    });
+    if(ford==="nome"||ford==="partido"){
+      r=r.slice().sort(function(a,b){
+        var pa=parlPorId(quemId(a)[0])||{nome:"",partido:""}, pb=parlPorId(quemId(b)[0])||{nome:"",partido:""};
+        return ford==="partido"
+          ? (pa.partido||"").localeCompare(pb.partido||"")||(pa.nome||"").localeCompare(pb.nome||"","pt-BR")
+          : (pa.nome||"").localeCompare(pb.nome||"","pt-BR");
+      });
+    }
+    return r;
+  }
+  var L_parl=peneira(VINC.socio_parlamentar,function(x){return [x.id];});
+  var L_doador=peneira(VINC.socio_doador,function(x){return [x.id];});
+  var L_cad=peneira(VINC.cadastro,function(x){return x.quem;});
+  /* nenhum achado é o resultado esperado para quase todo mundo: 6 dos 594
+     aparecem como sócios. Dizer "0 + 0 + 0" faz parecer defeito do filtro. */
+  var somaF=L_parl.length+L_doador.length+L_cad.length;
+  el("vi-filtro-achou").textContent=!filtrando ? ""
+    : somaF ? nf(L_parl.length)+" sócio, "+nf(L_doador.length)+" doador e "+nf(L_cad.length)
+              +" cadastro correspondem ao filtro"
+            : "Nenhum vínculo para esse filtro — e isso é o normal: dos "+nf(PARL.length)
+              +" parlamentares, "+nf(VINC.socio_parlamentar.length)+" aparecem como sócios de empresa "
+              +"que recebeu, e "+nf(VINC.socio_doador.length)+" têm um doador sócio da contratada.";
+
+  el("vi-parl").innerHTML=L_parl.length
     ?'<thead><tr><th>Parlamentar</th><th>Empresa</th><th>Papel na empresa</th><th>Conferência</th>'
     +'<th class="r">Pago pela campanha</th><th class="r">Pago pela cota</th></tr></thead><tbody>'
-    +VINC.socio_parlamentar.map(function(x,i){
-      var p=parlPorId(x.id);
+    +L_parl.map(function(x){
+      var i=VINC.socio_parlamentar.indexOf(x), p=parlPorId(x.id);
       return '<tr class="alerta"><td>'+(p?linhaParl(p):esc(x.id))
         +(p?'<br><span class="hint mono">'+esc(p.partido)+'/'+esc(p.uf)+'</span>':'')+'</td>'
         +'<td><button type="button" class="linkbtn" data-cnpj="'+esc(x.cnpj)+'">'+esc(x.empresa)+'</button>'
@@ -3148,10 +3216,10 @@ function renderVinculos(){
         +'<td class="r">'+(x.cota?brl(x.cota):(x.cota_outros?'<span class="hint">'+brlCurto(x.cota_outros)+' de outros</span>':"—"))+'</td></tr>'
         +linhaLeitura(x,6,"parl",i);
     }).join("")+'</tbody>'
-    :'<tbody><tr><td class="empty">Nenhum caso encontrado com os critérios acima.</td></tr></tbody>';
+    :'<tbody><tr><td class="empty">'+(filtrando?"Nenhum caso corresponde ao filtro.":"Nenhum caso encontrado com os critérios acima.")+'</td></tr></tbody>';
 
   var qd=el("vi-qd").value;
-  var ld=VINC.socio_doador.filter(function(x){
+  var ld=L_doador.filter(function(x){
     var p=parlPorId(x.id);
     return casaBusca(qd,x.socio+" "+x.empresa+" "+x.cnpj+" "+(p?p.nome+" "+p.partido+" "+p.uf:""));
   });
@@ -3172,10 +3240,10 @@ function renderVinculos(){
           +(x.campanha?brlCurto(x.campanha)+' da campanha':'')+'</span></td></tr>'
         +linhaLeitura(x,5,"doador",VINC.socio_doador.indexOf(x));
     }).join("")+'</tbody>'
-    :'<tbody><tr><td class="empty">Nenhum caso corresponde a essa busca.</td></tr></tbody>';
+    :'<tbody><tr><td class="empty">'+(filtrando?"Nenhum caso corresponde ao filtro desta página.":"Nenhum caso corresponde a essa busca.")+'</td></tr></tbody>';
 
   var qc=el("vi-qc").value, filtro=el("vi-filtro").value;
-  var lc=VINC.cadastro.filter(function(x){
+  var lc=L_cad.filter(function(x){
     if(filtro==="sit"&&!x.motivos.some(function(m){return m.indexOf("situação")===0;})) return false;
     if(filtro==="nova"&&!x.motivos.some(function(m){return m.indexOf("aberta")===0;})) return false;
     var nomes=x.quem.map(function(i){var p=parlPorId(i);return p?p.nome:"";}).join(" ");
@@ -3196,11 +3264,15 @@ function renderVinculos(){
         +'<td class="r">'+nf(x.gabinetes)+'</td></tr>'
         +linhaLeitura(x,5,"cadastro",VINC.cadastro.indexOf(x));
     }).join("")+'</tbody>'
-    :'<tbody><tr><td class="empty">Nenhuma empresa corresponde a esse filtro.</td></tr></tbody>';
+    :'<tbody><tr><td class="empty">'+(filtrando?"Nenhuma empresa corresponde ao filtro desta página.":"Nenhuma empresa corresponde a esse filtro.")+'</td></tr></tbody>';
 }
 el("vi-qd").addEventListener("input",renderVinculos);
 el("vi-qc").addEventListener("input",renderVinculos);
 el("vi-filtro").addEventListener("change",renderVinculos);
+el("vi-qp").addEventListener("input",renderVinculos);
+["vi-partido","vi-uf","vi-ord"].forEach(function(id){
+  el(id).addEventListener("change",renderVinculos);
+});
 
 /* ---------- composição ---------- */
 function renderComposicao(){
