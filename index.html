@@ -22,6 +22,8 @@
   --warn:#E0AC55; --warn-bg:#332613;
   --ok:#6FC79B;  --ok-bg:#142E1E;
   --data:#7BA6E8; --data-2:#3C5A85; --data-bg:#172435;
+  --crit-veu:rgba(238,145,131,.07); --crit-veu-2:rgba(238,145,131,.12);
+  --foco:#9FC2F2;
   --display:'Bricolage Grotesque','Helvetica Neue',Arial,sans-serif;
   --body:'Instrument Sans','Helvetica Neue',Arial,sans-serif;
   --mono:'JetBrains Mono','SFMono-Regular',Consolas,monospace;
@@ -37,6 +39,8 @@
   --warn:#8A5A06; --warn-bg:#FAF0DB;
   --ok:#1E6B45;  --ok-bg:#E1F0E8;
   --data:#2F5EA8; --data-2:#8FB0DC; --data-bg:#E6EDF8;
+  --crit-veu:rgba(165,42,31,.055); --crit-veu-2:rgba(165,42,31,.1);
+  --foco:#2F5EA8;
   color-scheme:light;
 }
 
@@ -47,7 +51,10 @@ h1,h2,h3,h4{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing
 p{margin:0}
 .num{font-variant-numeric:tabular-nums}
 .mono{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.9em;letter-spacing:-0.02em}
-.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.14em;color:var(--muted)}
+/* rótulo de seção: caixa normal, com um traço curto no lugar do versalete
+   espaçado — o traço situa sem levantar a voz */
+.eyebrow{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:500;color:var(--muted)}
+.eyebrow::before{content:"";width:16px;height:1px;background:var(--line-2);flex:none}
 :focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:4px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
@@ -81,27 +88,34 @@ input[type=search]::placeholder{color:var(--muted)}
   border-bottom:2px solid transparent;padding:12px 13px;cursor:pointer;white-space:nowrap}
 .tabs button:hover{color:var(--ink)}
 .tabs button[aria-current=page]{color:var(--ink);border-bottom-color:var(--ink);font-weight:600}
-.notice{background:var(--ok-bg);border-bottom:1px solid var(--line)}
-.notice .wrap{padding-block:8px;font-size:12.5px;color:var(--ok);display:flex;gap:8px;align-items:flex-start}
-.notice b{font-weight:600}
+/* a procedência fica em toda página, então tem de ser legível sem dominar:
+   faixa na cor do fundo, com o visto verde como único sinal */
+.notice{background:var(--surface);border-bottom:1px solid var(--line)}
+.notice .wrap{padding-block:9px;font-size:12.5px;color:var(--muted);display:flex;gap:9px;align-items:flex-start}
+.notice .wrap>span:first-child{color:var(--ok);font-weight:700;line-height:1.5}
+.notice b{font-weight:600;color:var(--ink-2)}
 
 main{padding-block:28px 64px}
 .view{display:grid;gap:30px}
 .sec{display:grid;gap:14px}
 .sec>header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.sec h2{font-size:20px;font-weight:600}
-.sec header small{font-size:13px;color:var(--muted)}
+.sec h2{font-family:var(--display);font-size:22px;font-weight:600;letter-spacing:-0.02em}
+.sec header small{font-size:13px;color:var(--muted);max-width:68ch;line-height:1.5}
 .rule{border-top:1px solid var(--line);padding-top:16px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
 .chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:500;padding:3px 9px;border-radius:99px;
   border:1px solid var(--line);color:var(--muted);background:var(--surface-2);white-space:nowrap}
-.chip.ok{color:var(--ok);background:var(--ok-bg);border-color:transparent;font-weight:600}
-.chip.warn{color:var(--warn);background:var(--warn-bg);border-color:transparent;font-weight:600}
-.chip.ml{color:var(--data);background:var(--data-bg);border-color:transparent;font-weight:600}
-.chip.crit{color:var(--crit);background:var(--crit-bg);border-color:transparent;font-weight:600}
-/* linha de alerta: a empresa aparece dos dois lados do dinheiro */
-tr.alerta td{background:var(--crit-bg)}
-tr.alerta td:first-child{box-shadow:inset 3px 0 0 var(--crit)}
+/* status fala pela cor do texto e pelo ponto; preencher a pílula inteira fazia
+   dela a coisa mais forte da linha, acima do próprio dado */
+.chip.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 35%,transparent);background:transparent;font-weight:600}
+.chip.warn{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 35%,transparent);background:transparent;font-weight:600}
+.chip.ml{color:var(--data);border-color:color-mix(in srgb,var(--data) 35%,transparent);background:transparent;font-weight:600}
+.chip.crit{color:var(--crit);border-color:color-mix(in srgb,var(--crit) 35%,transparent);background:transparent;font-weight:600}
+/* linha de alerta: a empresa aparece dos dois lados do dinheiro.
+   Fundo inteiro na cor do alerta afogava o texto — basta a barra e um véu. */
+tr.alerta td{background:var(--crit-veu)}
+tr.alerta td:first-child{box-shadow:inset 2px 0 0 var(--crit)}
+tbody tr.alerta:hover td{background:var(--crit-veu-2)}
 /* barra empilhada: como a pessoa votou, em proporcao */
 .pilha{display:flex;height:6px;border-radius:99px;overflow:hidden;background:var(--surface-3);min-width:80px}
 .pilha i{display:block;height:100%}
@@ -126,16 +140,29 @@ tr.leitura b{color:var(--ink);font-weight:600}
 .dot{width:6px;height:6px;border-radius:99px;background:currentColor;flex:none}
 .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
-th{font-family:var(--mono);font-weight:500;font-size:10.5px;text-transform:uppercase;letter-spacing:.11em;
-  color:var(--muted);text-align:left;padding:11px 13px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--surface-2)}
-td{padding:11px 13px;border-bottom:1px solid var(--line);vertical-align:middle}
+/* cabeçalho em caixa normal: versalete espaçado grita e rouba a linha do dado,
+   que é quem deve ser lido aqui */
+th{font-weight:500;font-size:12px;color:var(--muted);text-align:left;
+  padding:12px 14px 10px;border-bottom:1px solid var(--line-2);white-space:nowrap;
+  background:var(--surface);position:sticky;top:0;z-index:1}
+td{padding:13px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:hover td{background:var(--surface-2)}
+tbody tr.leitura:hover td{background:transparent}
 tr:last-child td{border-bottom:0}
+/* número só alinha se todos os algarismos tiverem a mesma largura */
 td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.r{font-feature-settings:"tnum" 1}
 .empty{padding:20px 14px;font-size:13.5px;color:var(--muted)}
 .hint{font-size:13px;color:var(--muted)}
+/* nome clicável: sublinhado só no toque. Numa tabela inteira de nomes, o
+   sublinhado permanente vira ruído e some com a hierarquia */
 .linkbtn{background:none;border:0;padding:0;font:inherit;color:var(--ink);font-weight:600;cursor:pointer;text-align:left;
-  text-decoration:underline;text-decoration-color:var(--line-2);text-underline-offset:3px}
-.linkbtn:hover{text-decoration-color:var(--ink)}
+  text-decoration:underline;text-decoration-color:transparent;text-underline-offset:3px;
+  transition:text-decoration-color .12s ease}
+.linkbtn:hover{text-decoration-color:var(--line-2)}
+/* o teclado também precisa ver onde está */
+:focus-visible{outline:2px solid var(--foco);outline-offset:2px;border-radius:3px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 
 /* ---------- início ---------- */
 .hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:34px;align-items:center;padding-block:14px 8px}
@@ -146,11 +173,14 @@ td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .herofig{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
 .herofig svg{width:100%;height:auto;display:block}
 .herofig figcaption{font-size:12px;color:var(--muted);padding:10px 4px 2px}
-.statstrip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);
-  border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
-.statstrip div{background:var(--surface);padding:16px 18px;display:grid;gap:3px}
-.statstrip b{font-family:var(--display);font-size:25px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-0.03em}
-.statstrip span{font-size:12.5px;color:var(--muted)}
+/* faixa de números: caixa em volta de cada um deixava a página com cara de
+   painel de SaaS. Um filete em cima e ar embaixo basta para separar. */
+.statstrip{display:grid;grid-template-columns:repeat(auto-fit,minmax(156px,1fr));
+  gap:20px 28px;border-top:1px solid var(--line-2);padding-top:16px}
+.statstrip div{display:grid;gap:2px;align-content:start}
+.statstrip b{font-family:var(--display);font-size:28px;font-weight:700;line-height:1.05;
+  font-variant-numeric:tabular-nums;letter-spacing:-0.035em}
+.statstrip span{font-size:12.5px;color:var(--muted);line-height:1.35;max-width:22ch}
 .prosa{max-width:62ch;display:grid;gap:14px;font-size:15.5px;color:var(--ink-2)}
 .prosa strong{color:var(--ink);font-weight:600}
 .passos{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px}
@@ -181,8 +211,8 @@ td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 
 /* ---------- diretório ---------- */
 .filtros{display:flex;gap:10px;flex-wrap:wrap}
-.filtros label{display:grid;gap:5px;font-family:var(--mono);font-size:10.5px;font-weight:500;color:var(--muted);
-  text-transform:uppercase;letter-spacing:.11em;flex:1 1 140px;min-width:0}
+.filtros label{display:grid;gap:5px;font-size:12px;font-weight:500;color:var(--muted);
+  flex:1 1 140px;min-width:0}
 .grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(236px,1fr));gap:11px}
 .pcard{padding:14px;display:grid;gap:12px;text-align:left;background:var(--surface);border:1px solid var(--line);
   border-radius:var(--r);cursor:pointer;font:inherit;color:inherit;align-content:start}
@@ -385,7 +415,6 @@ img{max-width:100%}
   <section class="view" id="view-inicio">
     <div class="hero">
       <div>
-        <p class="eyebrow">Dados abertos · Brasil</p>
         <h1>Dinheiro público deixa rastro. Ele só não está num lugar só.</h1>
         <p class="lede" id="hero-lede"></p>
         <div class="cta">
@@ -393,7 +422,8 @@ img{max-width:100%}
           <button type="button" class="btn" data-go="cota">Para onde vai a cota</button>
         </div>
       </div>
-      <figure class="herofig">
+      <div id="hero-fig"></div>
+      <figure class="herofig" hidden>
         <svg viewBox="0 0 600 262" role="img" aria-label="Esquema do cruzamento entre parlamentar, dinheiro público e empresa">
           <defs><marker id="h-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
             <path d="M0 0L10 5L0 10z" fill="var(--line-2)"/></marker></defs>
@@ -2683,8 +2713,14 @@ function renderVotacoes(){
   var base=COM_VOTO.filter(function(p){return !part||p.partido===part;});
   /* quem votou meia dúzia de vezes não pode liderar um ranking de porcentagem:
      3 votos acertados viram 100% e empurram para baixo quem votou 900 vezes */
-  var MIN=50, porcento=(ord==="fid"||ord==="infid"||ord==="pres"||ord==="aus");
-  if(porcento) base=base.filter(function(p){return p.votos.presente>=MIN;});
+  /* 100% de fidelidade em 61 votos não é mais fiel que 99,9% em 1.095: para
+     liderar um ranking de porcentagem é preciso ter votado o bastante, e ter
+     comparecido a parte razoável do próprio período */
+  var MIN=100, MINPRES=0.25, porcento=(ord==="fid"||ord==="infid");
+  if(ord==="pres"||ord==="aus"){ porcento=true; MINPRES=0; }
+  if(porcento) base=base.filter(function(p){
+    return p.votos.presente>=MIN&&presenca(p)>=MINPRES;
+  });
   var lista=base.slice();
   /* empate em porcentagem desempata por quem votou mais vezes: 100% em 60 votos
      não vale o mesmo que 100% em 900 */
@@ -2698,7 +2734,8 @@ function renderVotacoes(){
   var rank=lista.map(function(p,i){return {p:p,pos:i+1};})
     .filter(function(x){return casaBusca(q,x.p.nome+" "+(x.p.nome_civil||"")+" "+x.p.partido+" "+x.p.uf);});
   el("vt-rank-sub").textContent=nf(base.length)+" deputados"+(part?" do "+part:"")
-    +(porcento?" com pelo menos "+MIN+" votos registrados":"")
+    +(porcento?" com pelo menos "+MIN+" votos registrados"
+      +(MINPRES?" e presença acima de "+Math.round(MINPRES*100)+"%":""):"")
     +" — senadores não entram: a base de votação nominal é da Câmara";
   el("vt-rank-achou").textContent=semAcento(q).trim()
     ? nf(rank.length)+(rank.length===1?" encontrado":" encontrados") : "";
@@ -2914,14 +2951,28 @@ function mapaCircuito(nos,arestas,rotulo,W,H){
     var t=(typeof a.t==="number")?a.t:0.5;
     var mx=p1[0]+(p2[0]-p1[0])*t, my=p1[1]+(p2[1]-p1[1])*t;
     var texto=String(a.rotulo||""), larg=texto.length*5.9+16;
+    /* curva: a seta de retorno precisa contornar as caixas do meio em vez de
+       passar por baixo delas */
+    var caminho="", nx=0, ny=0;
+    if(a.curva){
+      var vx=p2[0]-p1[0], vy=p2[1]-p1[1], comp=Math.sqrt(vx*vx+vy*vy)||1;
+      var qx=mx-(vy/comp)*a.curva, qy=my+(vx/comp)*a.curva;
+      caminho="M"+p1[0].toFixed(1)+" "+p1[1].toFixed(1)+" Q"+qx.toFixed(1)+" "+qy.toFixed(1)
+        +" "+p2[0].toFixed(1)+" "+p2[1].toFixed(1);
+      mx=0.25*p1[0]+0.5*qx+0.25*p2[0];   /* ponto médio real da quadrática */
+      my=0.25*p1[1]+0.5*qy+0.25*p2[1];
+    }
     if(texto) rotulos.push('<g><rect x="'+(mx-larg/2).toFixed(1)+'" y="'+(my-10).toFixed(1)
         +'" width="'+larg.toFixed(1)+'" height="20" rx="10" fill="var(--bg)" stroke="'+cor
         +'" stroke-opacity="0.35"/>'
         +'<text x="'+mx.toFixed(1)+'" y="'+(my+4).toFixed(1)+'" font-size="11" text-anchor="middle" '
         +'fill="'+(a.destaque?"var(--crit)":"var(--ink-2)")+'">'+esc(texto)+'</text></g>');
-    return '<line x1="'+p1[0].toFixed(1)+'" y1="'+p1[1].toFixed(1)+'" x2="'+p2[0].toFixed(1)
-      +'" y2="'+p2[1].toFixed(1)+'" stroke="'+cor+'" stroke-width="'+(a.destaque?2:1.3)
-      +'" stroke-opacity="'+(a.destaque?1:0.55)+'" marker-end="url(#seta'+(a.destaque?"-f":"")+')"/>';
+    var traco='stroke="'+cor+'" stroke-width="'+(a.destaque?2:1.3)+'" fill="none" stroke-opacity="'
+      +(a.destaque?1:0.55)+'" marker-end="url(#seta'+(a.destaque?"-f":"")+')"';
+    return caminho
+      ? '<path d="'+caminho+'" '+traco+'/>'
+      : '<line x1="'+p1[0].toFixed(1)+'" y1="'+p1[1].toFixed(1)+'" x2="'+p2[0].toFixed(1)
+        +'" y2="'+p2[1].toFixed(1)+'" '+traco+'/>';
   }).join("");
   return '<figure class="circuito"><svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(rotulo)+'" '
     +'style="font-family:var(--body);color:var(--ink)">'
@@ -3226,6 +3277,39 @@ function renderFontes(){
         +'<td><span class="chip warn"><i class="dot"></i>'+esc(f[3])+'</span></td></tr>';
     }).join("")+'</tbody>';
 }
+
+/* ---------- o desenho de abertura ----------
+   Ele conta a tese da página: o dinheiro sai do parlamentar por dois caminhos,
+   chega na empresa, e o quadro societário diz de quem é a empresa. Agora que a
+   Receita entrou, o circuito fecha — a versão antiga tinha uma seta tracejada
+   dizendo "falta RFB", e essa seta deixou de ser verdade. */
+(function heroFig(){
+  var alvo=el("hero-fig"); if(!alvo) return;
+  var somaCamp=0, ultimo=ANOS_CAMP[ANOS_CAMP.length-1];
+  COM_CAMP.forEach(function(p){ var c=campDe(p,ultimo); if(c) somaCamp+=c.total; });
+  /* desenho vertical: na coluna estreita do hero, o mesmo diagrama deitado
+     encolhe a ponto de a letra não se ler */
+  var nos=[
+    {id:"p",x:142,y:8,w:236,h:66,tag:"quem decide",titulo:"Parlamentar",
+     sub:nf(PARL.length)+" em exercício"},
+    {id:"c",x:6,y:124,w:236,h:62,titulo:"Campanha",sub:brlCurto(somaCamp)+" em "+ultimo},
+    {id:"q",x:278,y:124,w:236,h:62,titulo:"Cota do mandato",sub:brlCurto(GASTO_TOTAL)+" desde "+ANO0},
+    {id:"e",x:142,y:240,w:236,h:70,tag:"quem recebe",titulo:"Empresa",
+     sub:nf(Object.keys(EMPRESAS).length)+" CNPJ lidos"},
+    {id:"s",x:142,y:364,w:236,h:68,titulo:"Sócio",
+     sub:"é a mesma pessoa do começo?",cor:"crit"}
+  ];
+  var ar=[
+    {de:"p",para:"c",rotulo:"banca"},
+    {de:"p",para:"q",rotulo:"gasta"},
+    {de:"c",para:"e",rotulo:"paga"},
+    {de:"q",para:"e",rotulo:"paga"},
+    {de:"e",para:"s",rotulo:"quadro societário",destaque:true}
+  ];
+  alvo.innerHTML=mapaCircuito(nos,ar,
+    "Os dois caminhos do dinheiro chegam na mesma empresa. O quadro societário diz de quem ela é — e às vezes o nome volta ao começo.",
+    520,444);
+})();
 
 /* ---------- boot ---------- */
 renderGrade();
