@@ -8,39 +8,43 @@
 <title>PrestaConta</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wdth,wght@75..100,400..700&family=JetBrains+Mono:wght@400..500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 
 <style>
 /* Layout: barra fixa + trilha de abas, coluna única de 1160px.
    Cor é evidência: a marca é monocromática e só status e dados recebem matiz saturado. */
 /* O escuro é o tema da casa: estes são os valores base. O claro vem depois, para
    quem usa o sistema no claro ou aperta o botão de tema. */
+/* Livro-caixa público: fundo de tinta, letra cor de papel, e o algarismo como
+   textura da página. O ocre é dinheiro; o vermelho só aparece onde o dinheiro
+   dá a volta e chega em quem o mandou sair. */
 :root{
-  --bg:#0B0D0F; --surface:#141719; --surface-2:#191C1F; --surface-3:#232729;
-  --ink:#E9EBE6; --ink-2:#C3C8C9; --muted:#8B9296; --line:#242A2C; --line-2:#3B4347;
-  --crit:#EE9183; --crit-bg:#381B16;
-  --warn:#E0AC55; --warn-bg:#332613;
-  --ok:#6FC79B;  --ok-bg:#142E1E;
-  --data:#7BA6E8; --data-2:#3C5A85; --data-bg:#172435;
-  --crit-veu:rgba(238,145,131,.07); --crit-veu-2:rgba(238,145,131,.12);
-  --foco:#9FC2F2;
-  --display:'Bricolage Grotesque','Helvetica Neue',Arial,sans-serif;
-  --body:'Instrument Sans','Helvetica Neue',Arial,sans-serif;
-  --mono:'JetBrains Mono','SFMono-Regular',Consolas,monospace;
-  --r:10px; --r-sm:7px;
+  --bg:#0F110D; --surface:#171A13; --surface-2:#1D2118; --surface-3:#272C21;
+  --ink:#EFEDE2; --ink-2:#CBC8B8; --muted:#8D9080; --line:#272C21; --line-2:#434A39;
+  --crit:#E8705A; --crit-bg:#331812;
+  --warn:#D9A441; --warn-bg:#30250F;
+  --ok:#86B96B;  --ok-bg:#1A2714;
+  --data:#8FA9D0; --data-2:#4A5B77; --data-bg:#1A2130;
+  --crit-veu:rgba(232,112,90,.07); --crit-veu-2:rgba(232,112,90,.13);
+  --foco:#D9A441;
+  --display:'Archivo','Helvetica Neue',Arial,sans-serif;
+  --body:'IBM Plex Sans','Helvetica Neue',Arial,sans-serif;
+  --mono:'IBM Plex Mono','SFMono-Regular',Consolas,monospace;
+  --r:4px; --r-sm:3px;
   color-scheme:dark;
 }
 /* O escuro e o padrao, sempre, mesmo com o sistema no claro. O tema claro
    continua inteiro aqui embaixo e entra so quando o visitante clica em "Tema". */
+/* no claro, papel de verdade: creme frio de impressão, tinta quase preta */
 :root[data-theme="light"]{
-  --bg:#F3F4F1; --surface:#FFFFFF; --surface-2:#FAFAF8; --surface-3:#EBECE7;
-  --ink:#14161A; --ink-2:#3C4248; --muted:#646B70; --line:#E2E3DE; --line-2:#C6C9C1;
-  --crit:#A52A1F; --crit-bg:#FBE9E6;
-  --warn:#8A5A06; --warn-bg:#FAF0DB;
-  --ok:#1E6B45;  --ok-bg:#E1F0E8;
-  --data:#2F5EA8; --data-2:#8FB0DC; --data-bg:#E6EDF8;
-  --crit-veu:rgba(165,42,31,.055); --crit-veu-2:rgba(165,42,31,.1);
-  --foco:#2F5EA8;
+  --bg:#F2F1E9; --surface:#FBFAF4; --surface-2:#F6F5ED; --surface-3:#E8E7DC;
+  --ink:#141710; --ink-2:#3B4035; --muted:#6B6F60; --line:#DEDCCF; --line-2:#BBB9A8;
+  --crit:#9C3522; --crit-bg:#F7E6E1;
+  --warn:#7A5410; --warn-bg:#F6EEDA;
+  --ok:#2F5F22;  --ok-bg:#E6EFE0;
+  --data:#2F5080; --data-2:#8FA3C2; --data-bg:#E7EDF5;
+  --crit-veu:rgba(156,53,34,.05); --crit-veu-2:rgba(156,53,34,.1);
+  --foco:#7A5410;
   color-scheme:light;
 }
 
@@ -58,7 +62,9 @@ p{margin:0}
 :focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:4px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
-.band{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+/* cabeçalho de publicação: filete duplo, como folha de rosto de documento */
+.band{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);
+  border-bottom:3px double var(--line-2)}
 .wrap{max-width:1160px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .topbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-block:13px}
 .brand{display:flex;align-items:center;gap:9px;min-width:0;background:none;border:0;padding:0;cursor:pointer;font:inherit;color:inherit}
@@ -66,7 +72,8 @@ p{margin:0}
 .mark::before,.mark::after{content:"";position:absolute;background:var(--surface);border-radius:99px}
 .mark::before{width:7px;height:7px;top:5px;left:5px;box-shadow:9px 9px 0 var(--surface)}
 .mark::after{width:14px;height:1.5px;top:12px;left:6px;transform:rotate(45deg)}
-.brand b{font-family:var(--display);font-weight:800;font-size:19px;letter-spacing:-0.035em}
+.brand b{font-family:var(--display);font-weight:700;font-size:21px;letter-spacing:.01em;
+  font-stretch:118%;text-transform:uppercase}
 .topbar form{flex:1 1 220px;min-width:0;display:flex;gap:8px;justify-content:flex-end}
 input[type=search],select{font-family:var(--body);font-size:14px;color:var(--ink);background:var(--surface-2);
   border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 12px;min-width:0;width:100%;max-width:340px}
@@ -82,24 +89,30 @@ input[type=search]::placeholder{color:var(--muted)}
 .ghost{font-family:var(--body);font-size:13px;font-weight:500;color:var(--muted);background:none;
   border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 12px;cursor:pointer;white-space:nowrap}
 .ghost:hover{color:var(--ink);border-color:var(--line-2)}
-.tabs{display:flex;gap:3px;overflow-x:auto;scrollbar-width:none;border-top:1px solid var(--line)}
+/* as seções separadas por régua vertical, como as colunas de um livro-caixa */
+.tabs{display:flex;overflow-x:auto;scrollbar-width:none;border-top:1px solid var(--line)}
 .tabs::-webkit-scrollbar{display:none}
-.tabs button{font-family:var(--body);font-weight:500;font-size:14px;color:var(--muted);background:none;border:0;
-  border-bottom:2px solid transparent;padding:12px 13px;cursor:pointer;white-space:nowrap}
+.tabs button{font-family:var(--body);font-weight:500;font-size:13px;color:var(--muted);background:none;border:0;
+  border-left:1px solid var(--line);border-bottom:2px solid transparent;
+  padding:11px 15px;cursor:pointer;white-space:nowrap}
+.tabs button:first-child{border-left:0;padding-left:0}
 .tabs button:hover{color:var(--ink)}
-.tabs button[aria-current=page]{color:var(--ink);border-bottom-color:var(--ink);font-weight:600}
+.tabs button[aria-current=page]{color:var(--ink);border-bottom-color:var(--warn);font-weight:600}
 /* a procedência fica em toda página, então tem de ser legível sem dominar:
    faixa na cor do fundo, com o visto verde como único sinal */
 .notice{background:var(--surface);border-bottom:1px solid var(--line)}
-.notice .wrap{padding-block:9px;font-size:12.5px;color:var(--muted);display:flex;gap:9px;align-items:flex-start}
+.notice .wrap{padding-block:8px;font-size:12.5px;color:var(--muted);display:flex;gap:9px;align-items:flex-start;line-height:1.5}
 .notice .wrap>span:first-child{color:var(--ok);font-weight:700;line-height:1.5}
 .notice b{font-weight:600;color:var(--ink-2)}
+.notice #n-data{color:var(--warn);font-family:var(--mono);font-size:12px}
 
 main{padding-block:28px 64px}
 .view{display:grid;gap:30px}
 .sec{display:grid;gap:14px}
 .sec>header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.sec h2{font-family:var(--display);font-size:22px;font-weight:600;letter-spacing:-0.02em}
+/* título de seção: largo e em caixa alta curta, como rubrica de documento */
+.sec h2{font-family:var(--display);font-size:19px;font-weight:700;letter-spacing:.02em;
+  font-stretch:112%;text-transform:uppercase}
 .sec header small{font-size:13px;color:var(--muted);max-width:68ch;line-height:1.5}
 .rule{border-top:1px solid var(--line);padding-top:16px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
@@ -143,9 +156,13 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}
 /* cabeçalho em caixa normal: versalete espaçado grita e rouba a linha do dado,
    que é quem deve ser lido aqui */
 th{font-weight:500;font-size:12px;color:var(--muted);text-align:left;
-  padding:12px 14px 10px;border-bottom:1px solid var(--line-2);white-space:nowrap;
-  background:var(--surface);position:sticky;top:0;z-index:1}
+  padding:11px 14px 9px;border-bottom:3px double var(--line-2);white-space:nowrap;
+  background:var(--surface-2);position:sticky;top:0;z-index:1}
 td{padding:13px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+/* régua entre colunas: é o que faz uma tabela parecer um livro-caixa e não
+   uma lista qualquer */
+th+th,td+td{border-left:1px solid var(--line)}
+.mono,td.r{font-family:var(--mono);font-size:12.5px;letter-spacing:-0.01em}
 tbody tr:hover td{background:var(--surface-2)}
 tbody tr.leitura:hover td{background:transparent}
 tr:last-child td{border-bottom:0}
@@ -167,8 +184,9 @@ td.r{font-feature-settings:"tnum" 1}
 /* ---------- início ---------- */
 .hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:34px;align-items:center;padding-block:14px 8px}
 @media (max-width:860px){.hero{grid-template-columns:1fr;gap:24px}}
-.hero h1{font-size:clamp(34px,5.4vw,54px);font-weight:800;letter-spacing:-0.04em}
-.hero .lede{font-size:17px;color:var(--ink-2);margin-top:16px;max-width:46ch}
+.hero h1{font-family:var(--display);font-size:clamp(33px,5vw,52px);font-weight:800;
+  letter-spacing:-0.025em;font-stretch:108%;line-height:1.02}
+.hero .lede{font-size:16.5px;color:var(--ink-2);margin-top:18px;max-width:48ch;line-height:1.6}
 .hero .cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
 .herofig{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
 .herofig svg{width:100%;height:auto;display:block}
@@ -178,8 +196,8 @@ td.r{font-feature-settings:"tnum" 1}
 .statstrip{display:grid;grid-template-columns:repeat(auto-fit,minmax(156px,1fr));
   gap:20px 28px;border-top:1px solid var(--line-2);padding-top:16px}
 .statstrip div{display:grid;gap:2px;align-content:start}
-.statstrip b{font-family:var(--display);font-size:28px;font-weight:700;line-height:1.05;
-  font-variant-numeric:tabular-nums;letter-spacing:-0.035em}
+.statstrip b{font-family:var(--mono);font-size:27px;font-weight:600;line-height:1.05;
+  font-variant-numeric:tabular-nums;letter-spacing:-0.045em;color:var(--ink)}
 .statstrip span{font-size:12.5px;color:var(--muted);line-height:1.35;max-width:22ch}
 .prosa{max-width:62ch;display:grid;gap:14px;font-size:15.5px;color:var(--ink-2)}
 .prosa strong{color:var(--ink);font-weight:600}
@@ -201,10 +219,10 @@ td.r{font-feature-settings:"tnum" 1}
 .naoe b{font-weight:600;color:var(--ink)}
 
 /* ---------- fotos: recorte das folhas de sprites ---------- */
-.foto{width:46px;height:46px;border-radius:50%;flex:none;display:block;border:1px solid var(--line);
+.foto{width:46px;height:46px;border-radius:3px;flex:none;display:block;border:1px solid var(--line);
   background-color:var(--surface-3);background-repeat:no-repeat;background-image:var(--sp);
   background-size:552px auto;background-position:calc(var(--c) * -46px) calc(var(--rw) * -46px)}
-.foto.xl{width:116px;height:116px;border-radius:16px;
+.foto.xl{width:116px;height:116px;border-radius:4px;
   background-size:1392px auto;background-position:calc(var(--c) * -116px) calc(var(--rw) * -116px)}
 .foto.sm{width:28px;height:28px;background-size:336px auto;
   background-position:calc(var(--c) * -28px) calc(var(--rw) * -28px)}
@@ -226,10 +244,15 @@ td.r{font-feature-settings:"tnum" 1}
 .voltar{background:none;border:0;padding:0;font:inherit;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;justify-self:start}
 .voltar:hover{color:var(--ink)}
 .maisbtn{justify-self:center;margin-top:4px}
-.btn{font-family:var(--body);font-size:13.5px;font-weight:600;border-radius:var(--r-sm);padding:9px 15px;cursor:pointer;
-  border:1px solid var(--line-2);background:var(--surface);color:var(--ink);text-decoration:none;display:inline-block}
+.btn{font-family:var(--body);font-size:13px;font-weight:600;border-radius:var(--r-sm);padding:10px 16px;cursor:pointer;
+  border:1px solid var(--line-2);background:transparent;color:var(--ink);text-decoration:none;display:inline-block;
+  letter-spacing:.01em}
 .btn:hover{border-color:var(--ink)}
-.btn.sim{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.btn.sim{background:var(--warn);border-color:var(--warn);color:#17190F}
+/* chamada em linha: moldura fina em vez de seta colada no texto */
+.chamada{font-family:var(--body);font-size:12px;font-weight:600;color:var(--ink);background:none;cursor:pointer;
+  border:1px solid var(--line-2);border-radius:var(--r-sm);padding:3px 9px;margin-left:4px;white-space:nowrap}
+.chamada:hover{border-color:var(--warn);color:var(--warn)}
 
 /* ---------- ficha ---------- */
 .ficha{padding:22px;display:grid;gap:18px}
@@ -2892,7 +2915,7 @@ function blocoSocios(cnpj){
 function linhaLeitura(x,colunas,tipo,i){
   if(!x.leitura) return "";
   return '<tr class="leitura"><td colspan="'+colunas+'"><p>'+esc(x.leitura)
-    +(tipo?' <button type="button" class="linkbtn" data-circuito="'+tipo+':'+i+'">ver o circuito &nearr;</button>':'')
+    +(tipo?' <button type="button" class="chamada" data-circuito="'+tipo+':'+i+'">ver o circuito</button>':'')
     +'</p></td></tr>';
 }
 
