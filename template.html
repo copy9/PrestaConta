@@ -2937,8 +2937,15 @@ function rodapeCircuito(x,extra){
     +(x.id?'<button type="button" class="btn" data-pid="'+esc(x.id)+'">Abrir a ficha do parlamentar</button>':'')
     +'</div>';
 }
-function circuitoParl(x){
-  if(!x) return "";
+/* só o desenho, sem cabeçalho nem rodapé: serve tanto ao modal do circuito
+   quanto ao detalhe da empresa, onde a explicação já está logo acima */
+function mapaDoVinculo(tipo,x){
+  if(tipo==="parl") return mapaParl(x);
+  if(tipo==="doador") return mapaDoador(x);
+  if(tipo==="cadastro") return mapaCadastro(x);
+  return "";
+}
+function mapaParl(x){
   var p=parlPorId(x.id), e=empresaDe(x.cnpj);
   var A={id:"p",x:24,y:26,w:260,h:88,tag:"parlamentar",titulo:p?p.nome:x.id,
          sub:p?p.cargo+" · "+p.partido+"/"+p.uf:""};
@@ -2961,15 +2968,18 @@ function circuitoParl(x){
     ar.push({de:"p",para:"q",rotulo:"é o titular"});
     ar.push({de:"q",para:"e",rotulo:"pagou "+brlCurto(x.cota),destaque:true});
   }
-  return cabModal("O circuito do vínculo",
-      esc(p?p.nome:"")+' &middot; '+esc(x.empresa))
-   +mapaCircuito(nos,ar,"As duas pontas do pagamento são a mesma pessoa: ela é sócia da empresa e é quem decide o gasto que vai para ela.",720,H)
+  return mapaCircuito(nos,ar,"As duas pontas do pagamento são a mesma pessoa: ela é sócia da empresa e é quem decide o gasto que vai para ela.",720,H);
+}
+function circuitoParl(x){
+  if(!x) return "";
+  var p=parlPorId(x.id);
+  return cabModal("O circuito do vínculo",esc(p?p.nome:"")+' &middot; '+esc(x.empresa))
+   +mapaParl(x)
    +rodapeCircuito(x, x.cpf_confere
       ?'<p><b>Como a identificação foi feita.</b> O nome do sócio e os seis dígitos do meio do CPF — os únicos que Receita e TSE publicam — batem com os do parlamentar. É a mesma pessoa.</p>'
       :'<p><b>Como a identificação foi feita.</b> Só pelo nome: a fonte não publica CPF desta pessoa para conferir. Homônimo acontece, então trate como indício, não como fato.</p>');
 }
-function circuitoDoador(x){
-  if(!x) return "";
+function mapaDoador(x){
   var p=parlPorId(x.id);
   var A={id:"d",x:24,y:26,w:270,h:88,tag:"doador e sócio",titulo:x.socio,
          sub:(x.qual||"sócio")+" da empresa",cor:"crit"};
@@ -2980,16 +2990,19 @@ function circuitoDoador(x){
   var volta=[];
   if(x.campanha) volta.push("campanha "+brlCurto(x.campanha));
   if(x.cota) volta.push("cota "+brlCurto(x.cota));
-  return cabModal("O circuito do vínculo",esc(x.socio)+' &middot; '+esc(x.empresa))
-   +mapaCircuito([A,B,C],[
+  return mapaCircuito([A,B,C],[
       {de:"d",para:"c",rotulo:"doou "+brlCurto(x.doou),destaque:true},
       {de:"c",para:"e",rotulo:"pagou "+volta.join(" + "),destaque:true},
       {de:"d",para:"e",rotulo:"é "+(x.qual||"sócio").toLowerCase()}
-     ],"O dinheiro sai de quem doou e volta para uma empresa da mesma pessoa.",720,400)
+     ],"O dinheiro sai de quem doou e volta para uma empresa da mesma pessoa.",720,400);
+}
+function circuitoDoador(x){
+  if(!x) return "";
+  return cabModal("O circuito do vínculo",esc(x.socio)+' &middot; '+esc(x.empresa))
+   +mapaDoador(x)
    +rodapeCircuito(x,'<p><b>Como a identificação foi feita.</b> O doador do TSE e o sócio da Receita batem em nome e nos seis dígitos do meio do CPF, que as duas bases publicam no mesmo formato mascarado.</p>');
 }
-function circuitoCadastro(x){
-  if(!x) return "";
+function mapaCadastro(x){
   var f=fornPorCnpj(x.cnpj), pago={};
   if(f) f.pagantes.forEach(function(d){pago[d.id]=d.valor;});
   var quem=x.quem.slice(0,4).map(parlPorId).filter(Boolean);
@@ -3010,8 +3023,12 @@ function circuitoCadastro(x){
   if(x.gabinetes>quem.length)
     nos.push({id:"mais",x:24,y:26+quem.length*84,w:264,h:50,
               titulo:"+ "+nf(x.gabinetes-quem.length)+" outros gabinetes"});
+  return mapaCircuito(nos,ar,"Dinheiro público de "+plural(x.gabinetes,"gabinete")+" para uma empresa cujo cadastro destoa.",720,H);
+}
+function circuitoCadastro(x){
+  if(!x) return "";
   return cabModal("O circuito do vínculo",esc(x.empresa)+' &middot; '+cnpjFmt(x.cnpj))
-   +mapaCircuito(nos,ar,"Dinheiro público de "+plural(x.gabinetes,"gabinete")+" para uma empresa cujo cadastro destoa.",720,H)
+   +mapaCadastro(x)
    +'<div class="card naoe" style="margin-bottom:12px">'
      +x.motivos.map(function(m){return '<div><i>&#9888;</i><span>'+esc(m)+'</span></div>';}).join("")
    +'</div>'
@@ -3031,18 +3048,21 @@ function nomeDivergente(cnpj,nomeNaNota){
 /* avisos que o cadastro da empresa levanta sozinho */
 function alertasDaEmpresa(cnpj){
   var cn=String(cnpj).replace(/\D/g,""), out=[];
-  VINC.socio_parlamentar.forEach(function(x){
-    if(x.cnpj===cn&&x.leitura) out.push(esc(x.leitura));
-  });
-  VINC.socio_doador.forEach(function(x){
-    if(x.cnpj===cn&&x.leitura) out.push(esc(x.leitura));
-  });
-  VINC.cadastro.forEach(function(x){
-    if(x.cnpj===cn&&x.leitura) out.push(esc(x.leitura));
-  });
+  var mapas=[];
+  [["parl","socio_parlamentar"],["doador","socio_doador"],["cadastro","cadastro"]]
+    .forEach(function(par){
+      VINC[par[1]].forEach(function(x){
+        if(x.cnpj!==cn||!x.leitura) return;
+        out.push(esc(x.leitura));
+        /* o desenho vem junto da explicação, aqui mesmo: quem abriu a empresa
+           não deveria ter de voltar à tabela para ver o circuito */
+        if(mapas.length<2) mapas.push(mapaDoVinculo(par[0],x));
+      });
+    });
   if(!out.length) return "";
   return '<div class="card naoe" style="margin-top:12px">'
-    +out.map(function(t){return '<div><i>&#9888;</i><span>'+t+'</span></div>';}).join("")+'</div>';
+    +out.map(function(t){return '<div><i>&#9888;</i><span>'+t+'</span></div>';}).join("")+'</div>'
+    +mapas.join("");
 }
 function renderVinculos(){
   var comCPF=VINC.socio_parlamentar.filter(function(x){return x.cpf_confere;}).length;
