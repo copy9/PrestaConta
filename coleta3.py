@@ -37,13 +37,19 @@ def so_digitos(s):
 
 
 def cpf_do_deputado(reg):
-    """Lido para o cruzamento e descartado em seguida: nao entra no json."""
-    try:
-        r = ses.get(f"{CAMARA}/deputados/{reg['fonte_id']}", timeout=40)
-        if r.status_code == 200:
-            return reg["id"], so_digitos(r.json()["dados"].get("cpf"))
-    except requests.RequestException:
-        pass
+    """Lido para o cruzamento e descartado em seguida: nao entra no json.
+       Com nova tentativa: a API da Camara oscila, e uma falha silenciosa aqui
+       derruba a cobertura do patrimonio inteiro sem ninguem perceber."""
+    for t in range(5):
+        try:
+            r = ses.get(f"{CAMARA}/deputados/{reg['fonte_id']}", timeout=50)
+            if r.status_code == 200:
+                return reg["id"], so_digitos(r.json()["dados"].get("cpf"))
+            if r.status_code == 404:
+                return reg["id"], ""
+        except requests.RequestException:
+            pass
+        time.sleep(2 * (t + 1))
     return reg["id"], ""
 
 
@@ -72,7 +78,10 @@ def main():
         for pid, cpf in pool.map(cpf_do_deputado, deps):
             if cpf:
                 cpfs[pid] = cpf
-    print(f"  {len(cpfs)} CPFs obtidos", flush=True)
+    print(f"  {len(cpfs)} CPFs obtidos de {len(deps)}", flush=True)
+    if len(cpfs) < 0.95 * len(deps):
+        sys.exit(f"ABORTADO: so {len(cpfs)} de {len(deps)} CPFs vieram. Gravar agora "
+                 f"derrubaria a cobertura do patrimonio. Rode de novo mais tarde.")
 
     # indices de busca
     por_cpf = {c: r["id"] for r, c in ((r, cpfs.get(r["id"])) for r in deps) if c}
@@ -107,21 +116,36 @@ def main():
             if pid:
                 sq_para_id[sq] = pid
 
+        # O TSE pede o VALOR do bem, nao quanto dele ja foi pago: imovel financiado
+        # entra pelo valor cheio mesmo com o banco dono de quase tudo. Quando o
+        # proprio candidato escreve que e financiado, da para separar.
+        PISTAS = ("financiad", "financiamento", "consorcio", "consórcio",
+                  "alienacao fiduciaria", "alienação fiduciária", "a quitar", "financ.")
         soma = defaultdict(float); qtd = defaultdict(int); tipos = defaultdict(lambda: defaultdict(float))
+        finan = defaultdict(float); qfin = defaultdict(int)
         for l in le_csv(bem):
             pid = sq_para_id.get(l.get("SQ_CANDIDATO"))
             if not pid:
                 continue
             v = valor(l.get("VR_BEM_CANDIDATO"))
             soma[pid] += v; qtd[pid] += 1
+            if any(p in (l.get("DS_BEM_CANDIDATO") or "").lower() for p in PISTAS):
+                finan[pid] += v; qfin[pid] += 1
             tipos[pid][(l.get("DS_TIPO_BEM_CANDIDATO") or "Outros").strip()] += v
 
         for pid, v in soma.items():
+            cats = [{"tipo": t, "valor": round(x)}
+                    for t, x in sorted(tipos[pid].items(), key=lambda kv: -kv[1]) if round(x)]
             patr[pid][ano] = {
-                "valor": round(v),
+                # o total e a soma das categorias ja arredondadas: arredondar os
+                # dois lados em separado deixava a coluna da ficha sem fechar
+                "valor": sum(c["valor"] for c in cats),
                 "bens": qtd[pid],
-                "tipos": [{"tipo": t, "valor": round(x)}
-                          for t, x in sorted(tipos[pid].items(), key=lambda kv: -kv[1])[:5]],
+                "fin": round(finan.get(pid, 0.0)),
+                "n_fin": qfin.get(pid, 0),
+                # todas as categorias, nao so as maiores: na ficha o leitor soma
+                # a coluna, e uma lista truncada nunca fecha com o total
+                "tipos": cats,
             }
         print(f"  {ano}: {len(sq_para_id)} candidaturas casadas "
               f"({achados_cpf} por CPF, {achados_nome} por nome), "
@@ -131,6 +155,7 @@ def main():
     for r in regs:
         anos = patr.get(r["id"]) or {}
         serie = [{"ano": a, "valor": anos[a]["valor"], "bens": anos[a]["bens"],
+                  "fin": anos[a].get("fin", 0), "n_fin": anos[a].get("n_fin", 0),
                   "tipos": anos[a]["tipos"]} for a in ANOS if a in anos]
         r["patrimonio"] = serie or None
         if serie:

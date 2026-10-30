@@ -530,7 +530,7 @@ footer .wrap{padding-block:24px;font-size:12.5px;color:var(--muted);display:grid
           <option>Câmara dos Deputados</option><option>Senado Federal</option></select></label>
       </div>
       <div class="tablewrap"><table id="pt-rank"></table></div>
-      <p class="hint">Valores nominais, como declarados, <b>sem correção pela inflação</b> — parte do aumento é só o dinheiro valendo menos. A declaração é feita pelo próprio candidato no registro da candidatura. Variação alta não é indício de nada por si só: pode ser herança, venda de empresa ou reavaliação de imóvel.</p>
+      <p class="hint"><b>Patrimônio declarado é bruto, não líquido:</b> o TSE pede o valor do bem e não pergunta quanto se deve por ele, então imóvel e carro financiados entram pelo valor cheio. Quem financia uma casa "fica mais rico" nesta tabela. Valores nominais, como declarados, <b>sem correção pela inflação</b> — parte do aumento é só o dinheiro valendo menos. A declaração é feita pelo próprio candidato no registro da candidatura. Variação alta não é indício de nada por si só: pode ser herança, venda de empresa ou reavaliação de imóvel.</p>
     </div>
   </section>
 
@@ -1576,6 +1576,10 @@ function renderPatrBloco(p){
           +(mult?' ('+mult.toLocaleString("pt-BR",{maximumFractionDigits:1})+'×)':'')
           +'. Valores nominais, sem correção pela inflação.'
         : 'Uma única declaração encontrada, na eleição de '+ult.ano+'.')+'</p>'
+    +(ult.fin?'<p class="naoe" style="margin:0 0 12px">'
+      +'<b>'+brl(ult.fin)+' deste total ('+pct(ult.valor?ult.fin/ult.valor:0)+') é bem que ele mesmo descreve como financiado ou consorciado.</b> '
+      +'O TSE pede o <b>valor do bem</b>, não o quanto dele já foi pago: um imóvel financiado entra pelo valor cheio '
+      +'mesmo com a maior parte ainda devida ao banco. Dívida não é declarada, então este número é patrimônio bruto, não líquido.</p>':'')
     +'<svg class="chart" id="patr-chart" role="img" aria-label="Patrimônio declarado por eleição"></svg>'
     +'<div class="kpis">'
       +'<div><b>'+brlCurto(ult.valor)+'</b><span>declarado em '+ult.ano+'</span></div>'
@@ -1583,6 +1587,7 @@ function renderPatrBloco(p){
       +(mult?'<div><b>'+mult.toLocaleString("pt-BR",{maximumFractionDigits:1})+'×</b><span>multiplicação</span></div>':'')
       +'<div><b class="num">'+ult.bens+'</b><span>bens declarados</span></div>'
       +'<div><b class="num">'+s.length+'</b><span>eleições com declaração</span></div>'
+      +(ult.fin?'<div><b>'+pct(ult.valor?ult.fin/ult.valor:0)+'</b><span>em bem financiado</span></div>':'')
     +'</div></div>'
    +'<div class="sec" style="margin-bottom:18px"><header><div><h2>Do que é feito esse patrimônio</h2>'
       +'<small>Categorias declaradas em '+ult.ano+', da maior para a menor</small></div></header>'
@@ -2233,7 +2238,7 @@ function detBem(tipo,polId){
      +'<p><b>Como ler o valor.</b> O valor é declarado pelo próprio candidato e <b>não é conferido contra o mercado</b>. Um imóvel pode estar pelo preço de compra de vinte anos atrás, e uma cota de empresa pelo valor contábil. Por isso a comparação útil é a do mesmo candidato ao longo das eleições, não entre candidatos.</p></div>'
    +(temHist?'<div><p class="eyebrow" style="margin-bottom:9px">Esta categoria ao longo das eleições</p>'
       +barraSerie(hist)
-      +'<p class="hint" style="margin-top:9px">Zero pode significar que ele não tinha esse bem, ou que naquele ano a categoria não ficou entre as cinco maiores dele.</p></div>':'')
+      +'<p class="hint" style="margin-top:9px">Zero significa que ele não declarou nada nesta categoria naquela eleição.</p></div>':'')
    +'<div><p class="eyebrow" style="margin-bottom:9px">Quem mais declara nesta categoria</p>'
      +rankOutros(RANK_BEM,tipo,polId,6)
      +'<p class="hint" style="margin-top:9px">Entre os que têm esta categoria no topo da própria declaração.</p></div>';
