@@ -11,7 +11,7 @@ e publicar 513 CPFs inteiros seria exposicao desnecessaria.
 
 Saida: dados/parlamentares.json enriquecido.
 """
-import json, time
+import json, re, time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 
@@ -103,6 +103,12 @@ def despesas_deputado(reg):
         if ano:
             por_ano[ano] += v
         cnpj = (x.get("cnpjCpfFornecedor") or "").strip()
+        # fornecedor pessoa fisica: a Camara publica o CPF inteiro. O nome fica,
+        # porque e dinheiro publico e quem recebeu tem de aparecer; o documento
+        # vira "pf"+os seis digitos do meio, a mesma mascara do doador no TSE.
+        so = re.sub(r"\D", "", cnpj)
+        if len(so) == 11:
+            cnpj = "pf" + so[3:9]
         if cnpj:
             forn[cnpj] += v
             nomes.setdefault(cnpj, x.get("nomeFornecedor") or "")
