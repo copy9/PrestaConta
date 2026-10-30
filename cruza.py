@@ -254,15 +254,19 @@ def main():
         if x["campanha"] and x["cota"]:
             partes.append(f"A campanha dele pagou {quanto(x['campanha'])} a essa empresa, "
                           f"e o gabinete pagou mais {quanto(x['cota'])} com a cota parlamentar.")
-            partes.append("Quem decide o gasto e quem recebe são a mesma pessoa nos dois casos. "
-                          "É declarado e não é proibido, mas é o tipo de contratação que "
-                          "costuma exigir explicação: o dinheiro sai do caixa público ou de "
-                          "campanha e entra num patrimônio dele.")
+            partes.append("Quem decide o gasto e quem é dono de quem recebe são a mesma "
+                          "pessoa, nos dois casos. É declarado e não é proibido. O que o "
+                          "dado mostra é a coincidência das duas pontas; quanto disso virou "
+                          "ganho pessoal depende do serviço prestado, do custo e da margem "
+                          "da empresa, e isso nenhuma destas bases informa.")
         elif x["campanha"]:
             partes.append(f"A campanha dele pagou {quanto(x['campanha'])} a essa mesma empresa.")
-            partes.append("Na prática, parte do gasto de campanha ficou dentro do próprio "
-                          "patrimônio. A lei permite e a prestação de contas declara — o que "
-                          "este site faz é mostrar que as duas pontas são a mesma pessoa.")
+            partes.append("A lei permite e a prestação de contas declara. O que este site "
+                          "mostra é que quem contratou e quem é dono da contratada são a "
+                          "mesma pessoa — não que esse dinheiro tenha virado patrimônio "
+                          "dela: pagamento a empresa é receita da empresa, não ganho do "
+                          "sócio, e o que sobra depois do serviço e dos custos não está "
+                          "em nenhuma base pública.")
         elif x["cota"]:
             partes.append(f"O gabinete dele pagou {quanto(x['cota'])} a essa empresa com a "
                           f"cota parlamentar, que é dinheiro público.")
@@ -273,8 +277,9 @@ def main():
             partes.append(f"Ele não pagou nada a ela, mas outros gabinetes pagaram "
                           f"{quanto(x['cota_outros'])} com a cota.")
             partes.append("Empresa de parlamentar recebendo cota de colegas não é ilegal, "
-                          "mas é um fluxo de dinheiro público para o patrimônio de alguém "
-                          "que vota as regras desse mesmo dinheiro.")
+                          "mas é dinheiro público indo para uma empresa de quem vota as "
+                          "regras desse mesmo dinheiro. Quanto disso chega ao sócio, o "
+                          "dado não diz.")
         x["leitura"] = " ".join(partes)
 
     for x in v_doador:
