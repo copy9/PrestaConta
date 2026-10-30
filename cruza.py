@@ -300,8 +300,9 @@ def main():
     for x in v_cadastro:
         nomes = [por_id[i]["nome"] for i in x["quem"] if i in por_id][:3]
         sit = (x["situacao"] or "").upper()
+        g = x["gabinetes"]
         base = (f"A {x['empresa']} recebeu {quanto(x['cota'])} da cota parlamentar de "
-                f"{x['gabinetes']} gabinete(s)"
+                f"{g} gabinete" + ("s" if g != 1 else "")
                 + (f", entre eles {', '.join(nomes)}" if nomes else "") + ". ")
         if sit and sit != "ATIVA":
             base += (f"Hoje o CNPJ dela está {sit.lower()} na Receita. A situação é a de agora, "

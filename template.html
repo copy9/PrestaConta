@@ -113,6 +113,10 @@ tr.alerta td:first-child{box-shadow:inset 3px 0 0 var(--crit)}
 tr.leitura td{padding-top:0;font-size:13px;color:var(--ink-2);line-height:1.55}
 tr.leitura p{max-width:92ch;border-left:2px solid var(--line-2);padding-left:12px}
 tr.leitura b{color:var(--ink);font-weight:600}
+/* o circuito desenhado */
+.circuito{margin:4px 0 14px;display:grid;gap:9px}
+.circuito svg{width:100%;height:auto;max-width:720px;display:block}
+.circuito figcaption{font-size:12.5px;color:var(--muted);max-width:72ch}
 .dot{width:6px;height:6px;border-radius:99px;background:currentColor;flex:none}
 .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
@@ -797,6 +801,8 @@ var MES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function el(id){return document.getElementById(id);}
 function nf(n){return Number(n).toLocaleString("pt-BR");}
+/* '3 gabinetes', '1 gabinete' — nunca a forma com parênteses no plural */
+function plural(n,sing,plur){return nf(n)+" "+(Math.abs(n)===1?sing:(plur||sing+"s"));}
 /* busca que ignora acento, caixa e pontuação: "jose" acha "José", "12345678" acha "12.345.678/0001-90" */
 function semAcento(s){return String(s==null?"":s).normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();}
 function casaBusca(q,texto){
@@ -2339,7 +2345,7 @@ function detCampForn(s,pid){
      +blocoSocios(cn)+alertasDaEmpresa(cn)+'</div>'
    +(naCota
      ?'<p class="naoe" style="margin-top:14px"><b>Mesma empresa nos dois lados.</b> Ela foi paga pela campanha eleitoral e, já no mandato, recebeu da cota parlamentar — '
-       +nf(naCota.gabinetes)+' gabinete(s) no total. Isso não é irregularidade por si só: pode ser a gráfica de sempre. É onde a checagem começa.</p>'
+       +plural(naCota.gabinetes,"gabinete")+' no total. Isso não é irregularidade por si só: pode ser a gráfica de sempre. É onde a checagem começa.</p>'
        +'<div class="acoes2"><button type="button" class="btn sim" data-centrar="emp:'+esc(cn)+'">Abrir a teia nesta empresa</button></div>'
      :'<p class="hint" style="margin-top:14px">Esta empresa não aparece entre os 10 maiores fornecedores de nenhum gabinete na cota parlamentar.</p>');
 }
@@ -2394,8 +2400,8 @@ function detDoador(chave){
      +'<div><b>'+esc(d.tipo==="PJ"?"empresa/partido":"pessoa física")+'</b><span>natureza do doador</span></div>'
    +'</div>'
    +(naCota?'<p class="naoe" style="margin-top:14px"><b>Este mesmo CNPJ recebeu '
-      +brl(naCota.valor)+' da cota parlamentar</b>, de '+nf(naCota.gabinetes)
-      +' gabinete(s). Doação e nota fiscal com o mesmo documento é o ponto de partida de qualquer checagem.</p>':'')
+      +brl(naCota.valor)+' da cota parlamentar</b>, de '+plural(naCota.gabinetes,"gabinete")
+      +'. Doação e nota fiscal com o mesmo documento é o ponto de partida de qualquer checagem.</p>':'')
    +'<div><p class="eyebrow" style="margin:14px 0 9px">Para quem doou</p>'
    +'<div class="tablewrap"><table><thead><tr><th>Parlamentar</th><th>Partido/UF</th>'
    +'<th class="r">Recebeu</th></tr></thead><tbody>'
@@ -2426,6 +2432,8 @@ document.addEventListener("click",function(e){
   if(vv){ abrirDetalhe(detVotacao(+vv.dataset.votacao)); return; }
   var dd=e.target.closest("[data-doador]");
   if(dd){ abrirDetalhe(detDoador(dd.dataset.doador)); return; }
+  var ci=e.target.closest("[data-circuito]");
+  if(ci){ abrirDetalhe(detCircuito(ci.dataset.circuito)); return; }
   var cc=e.target.closest("[data-cnpj]");
   if(cc){
     var cn=cc.dataset.cnpj;
@@ -2824,14 +2832,190 @@ function blocoSocios(cnpj){
           return '<tr><td>'+esc(s[0])+'</td><td class="mono">'+(s[1]?'***.'+esc(s[1].slice(0,3))+'.'+esc(s[1].slice(3))+'-**':'—')+'</td>'
             +'<td>'+esc(s[2]||"")+'</td></tr>';
         }).join("")+'</tbody></table></div>'
-       +(e.n>q.length?'<p class="hint">'+nf(e.n-q.length)+' sócio(s) a mais não mostrados.</p>':'')
+       +(e.n>q.length?'<p class="hint">'+plural(e.n-q.length,"sócio")+' a mais não mostrado'+(e.n-q.length>1?'s':'')+'.</p>':'')
       :'<p class="hint">Sem quadro societário publicado — é o caso de MEI, de empresa individual e de órgão público.</p>');
 }
 /* a leitura vem pronta do cruzamento: o site explica o que achou, em vez de
    largar a tabela e deixar o leitor adivinhar se aquilo quer dizer alguma coisa */
-function linhaLeitura(x,colunas){
+function linhaLeitura(x,colunas,tipo,i){
   if(!x.leitura) return "";
-  return '<tr class="leitura"><td colspan="'+colunas+'"><p>'+esc(x.leitura)+'</p></td></tr>';
+  return '<tr class="leitura"><td colspan="'+colunas+'"><p>'+esc(x.leitura)
+    +(tipo?' <button type="button" class="linkbtn" data-circuito="'+tipo+':'+i+'">ver o circuito &nearr;</button>':'')
+    +'</p></td></tr>';
+}
+
+/* ---------- o circuito desenhado ----------
+   O texto explica; o desenho mostra que as pontas se encontram. Tudo em SVG
+   escrito à mão: traço e letra herdam currentColor, então o mesmo desenho serve
+   ao tema claro e ao escuro sem segunda versão. */
+function quebra(t,max){
+  var p=String(t||"").split(/\s+/), l=[], atual="";
+  p.forEach(function(w){
+    if(!atual) atual=w;
+    else if((atual+" "+w).length<=max) atual+=" "+w;
+    else { l.push(atual); atual=w; }
+  });
+  if(atual) l.push(atual);
+  return l.slice(0,3);
+}
+function caixaSVG(n){
+  var cor=n.cor?"var(--"+n.cor+")":"currentColor";
+  var linhas=quebra(n.titulo,n.w>270?30:24);
+  /* ritmo vertical fixo: etiqueta, título, subtítulo. Calcular o topo a partir
+     do número de linhas fazia o subtítulo subir por cima do título. */
+  var yTag=n.y+17, yTitulo=n.y+(n.tag?36:26), ySub=n.y+n.h-12;
+  return '<g>'
+    +'<rect x="'+n.x+'" y="'+n.y+'" width="'+n.w+'" height="'+n.h+'" rx="10" '
+      +'fill="var(--surface-2)" stroke="'+cor+'" stroke-width="'+(n.cor?2:1.2)+'"/>'
+    +(n.tag?'<text x="'+(n.x+14)+'" y="'+yTag+'" font-size="9.5" letter-spacing="1.2" '
+      +'fill="'+cor+'" style="text-transform:uppercase">'+esc(n.tag)+'</text>':'')
+    +linhas.map(function(t,i){
+      return '<text x="'+(n.x+14)+'" y="'+(yTitulo+i*15)+'" font-size="13" font-weight="600" '
+        +'fill="currentColor">'+esc(t)+'</text>';
+    }).join("")
+    +(n.sub?'<text x="'+(n.x+14)+'" y="'+ySub+'" font-size="10.5" fill="var(--muted)">'
+      +esc(n.sub)+'</text>':'')
+    +'</g>';
+}
+function bordaDe(n,ax,ay){
+  /* onde a seta encosta na caixa: evita a linha entrar por cima do texto */
+  var cx=n.x+n.w/2, cy=n.y+n.h/2, dx=ax-cx, dy=ay-cy;
+  if(!dx&&!dy) return [cx,cy];
+  var ex=Math.abs(dx)>0.0001?(n.w/2+8)/Math.abs(dx):1e9;
+  var ey=Math.abs(dy)>0.0001?(n.h/2+8)/Math.abs(dy):1e9;
+  var t=Math.min(ex,ey);
+  return [cx+dx*t,cy+dy*t];
+}
+function mapaCircuito(nos,arestas,rotulo,W,H){
+  var idx={}; nos.forEach(function(n){idx[n.id]=n;});
+  var rotulos=[];
+  var linhas=arestas.map(function(a){
+    var de=idx[a.de], para=idx[a.para]; if(!de||!para) return "";
+    var c1=[de.x+de.w/2,de.y+de.h/2], c2=[para.x+para.w/2,para.y+para.h/2];
+    var p1=bordaDe(de,c2[0],c2[1]), p2=bordaDe(para,c1[0],c1[1]);
+    var cor=a.destaque?"var(--crit)":"currentColor";
+    /* t move o rótulo ao longo da seta: com várias setas chegando no mesmo nó,
+       rótulo no meio de todas elas vira uma pilha ilegível */
+    var t=(typeof a.t==="number")?a.t:0.5;
+    var mx=p1[0]+(p2[0]-p1[0])*t, my=p1[1]+(p2[1]-p1[1])*t;
+    var texto=String(a.rotulo||""), larg=texto.length*5.9+16;
+    if(texto) rotulos.push('<g><rect x="'+(mx-larg/2).toFixed(1)+'" y="'+(my-10).toFixed(1)
+        +'" width="'+larg.toFixed(1)+'" height="20" rx="10" fill="var(--bg)" stroke="'+cor
+        +'" stroke-opacity="0.35"/>'
+        +'<text x="'+mx.toFixed(1)+'" y="'+(my+4).toFixed(1)+'" font-size="11" text-anchor="middle" '
+        +'fill="'+(a.destaque?"var(--crit)":"var(--ink-2)")+'">'+esc(texto)+'</text></g>');
+    return '<line x1="'+p1[0].toFixed(1)+'" y1="'+p1[1].toFixed(1)+'" x2="'+p2[0].toFixed(1)
+      +'" y2="'+p2[1].toFixed(1)+'" stroke="'+cor+'" stroke-width="'+(a.destaque?2:1.3)
+      +'" stroke-opacity="'+(a.destaque?1:0.55)+'" marker-end="url(#seta'+(a.destaque?"-f":"")+')"/>';
+  }).join("");
+  return '<figure class="circuito"><svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(rotulo)+'" '
+    +'style="font-family:var(--body);color:var(--ink)">'
+    +'<defs>'
+    +'<marker id="seta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">'
+      +'<path d="M0 0 L10 5 L0 10 z" fill="currentColor" fill-opacity="0.55"/></marker>'
+    +'<marker id="seta-f" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">'
+      +'<path d="M0 0 L10 5 L0 10 z" fill="var(--crit)"/></marker>'
+    +'</defs>'
+    /* ordem importa: setas, caixas, e os rótulos por último — caixa desenhada
+       depois do rótulo come o texto que encosta nela */
+    +linhas+nos.map(caixaSVG).join("")+rotulos.join("")
+    +'</svg><figcaption>'+esc(rotulo)+'</figcaption></figure>';
+}
+
+/* os três circuitos, um por tipo de achado */
+function detCircuito(chave){
+  var pos=chave.indexOf(":"), tipo=chave.slice(0,pos), i=+chave.slice(pos+1);
+  if(tipo==="parl") return circuitoParl(VINC.socio_parlamentar[i]);
+  if(tipo==="doador") return circuitoDoador(VINC.socio_doador[i]);
+  if(tipo==="cadastro") return circuitoCadastro(VINC.cadastro[i]);
+  return "";
+}
+function rodapeCircuito(x,extra){
+  return '<div class="oque"><p>'+esc(x.leitura||"")+'</p>'+(extra||"")+'</div>'
+    +'<div class="acoes2" style="margin-top:12px">'
+    +'<button type="button" class="btn" data-cnpj="'+esc(x.cnpj)+'">Abrir a empresa</button>'
+    +(x.id?'<button type="button" class="btn" data-pid="'+esc(x.id)+'">Abrir a ficha do parlamentar</button>':'')
+    +'</div>';
+}
+function circuitoParl(x){
+  if(!x) return "";
+  var p=parlPorId(x.id), e=empresaDe(x.cnpj);
+  var A={id:"p",x:24,y:26,w:260,h:88,tag:"parlamentar",titulo:p?p.nome:x.id,
+         sub:p?p.cargo+" · "+p.partido+"/"+p.uf:""};
+  var B={id:"e",x:436,y:26,w:260,h:88,tag:"empresa",titulo:x.empresa,
+         sub:cnpjFmt(x.cnpj)+(e?" · "+e.s.toLowerCase():""),cor:"crit"};
+  var nos=[A,B], ar=[{de:"p",para:"e",rotulo:"é "+(x.qual||"sócio").toLowerCase(),destaque:true}];
+  var H=190;
+  if(x.campanha){
+    var C={id:"c",x:230,y:250,w:260,h:76,tag:"dinheiro de campanha",
+           titulo:"Campanha eleitoral",sub:"prestação de contas ao TSE"};
+    nos.push(C); H=400;
+    ar.push({de:"p",para:"c",rotulo:"é o candidato"});
+    ar.push({de:"c",para:"e",rotulo:"pagou "+brlCurto(x.campanha),destaque:true});
+  }
+  if(x.cota){
+    var D={id:"q",x:x.campanha?24:230,y:x.campanha?250:200,w:260,h:76,tag:"dinheiro público",
+           titulo:"Cota parlamentar",sub:"verba de gabinete"};
+    if(x.campanha){ D.x=24; D.y=250; nos[2].x=400; }
+    nos.push(D); H=400;
+    ar.push({de:"p",para:"q",rotulo:"é o titular"});
+    ar.push({de:"q",para:"e",rotulo:"pagou "+brlCurto(x.cota),destaque:true});
+  }
+  return cabModal("O circuito do vínculo",
+      esc(p?p.nome:"")+' &middot; '+esc(x.empresa))
+   +mapaCircuito(nos,ar,"As duas pontas do pagamento são a mesma pessoa: ela é sócia da empresa e é quem decide o gasto que vai para ela.",720,H)
+   +rodapeCircuito(x, x.cpf_confere
+      ?'<p><b>Como a identificação foi feita.</b> O nome do sócio e os seis dígitos do meio do CPF — os únicos que Receita e TSE publicam — batem com os do parlamentar. É a mesma pessoa.</p>'
+      :'<p><b>Como a identificação foi feita.</b> Só pelo nome: a fonte não publica CPF desta pessoa para conferir. Homônimo acontece, então trate como indício, não como fato.</p>');
+}
+function circuitoDoador(x){
+  if(!x) return "";
+  var p=parlPorId(x.id);
+  var A={id:"d",x:24,y:26,w:270,h:88,tag:"doador e sócio",titulo:x.socio,
+         sub:(x.qual||"sócio")+" da empresa",cor:"crit"};
+  var B={id:"e",x:426,y:26,w:270,h:88,tag:"empresa",titulo:x.empresa,
+         sub:cnpjFmt(x.cnpj)};
+  var C={id:"c",x:225,y:258,w:270,h:88,tag:"parlamentar",titulo:p?p.nome:x.id,
+         sub:p?p.partido+"/"+p.uf+" · campanha e mandato":""};
+  var volta=[];
+  if(x.campanha) volta.push("campanha "+brlCurto(x.campanha));
+  if(x.cota) volta.push("cota "+brlCurto(x.cota));
+  return cabModal("O circuito do vínculo",esc(x.socio)+' &middot; '+esc(x.empresa))
+   +mapaCircuito([A,B,C],[
+      {de:"d",para:"c",rotulo:"doou "+brlCurto(x.doou),destaque:true},
+      {de:"c",para:"e",rotulo:"pagou "+volta.join(" + "),destaque:true},
+      {de:"d",para:"e",rotulo:"é "+(x.qual||"sócio").toLowerCase()}
+     ],"O dinheiro sai de quem doou e volta para uma empresa da mesma pessoa.",720,400)
+   +rodapeCircuito(x,'<p><b>Como a identificação foi feita.</b> O doador do TSE e o sócio da Receita batem em nome e nos seis dígitos do meio do CPF, que as duas bases publicam no mesmo formato mascarado.</p>');
+}
+function circuitoCadastro(x){
+  if(!x) return "";
+  var f=fornPorCnpj(x.cnpj), pago={};
+  if(f) f.pagantes.forEach(function(d){pago[d.id]=d.valor;});
+  var quem=x.quem.slice(0,4).map(parlPorId).filter(Boolean);
+  var e=empresaDe(x.cnpj);
+  var H=Math.max(280,56+(quem.length+(x.gabinetes>quem.length?1:0))*84);
+  var E={id:"e",x:410,y:H/2-50,w:286,h:100,tag:"empresa",titulo:x.empresa,
+         sub:cnpjFmt(x.cnpj)+(e?" · "+e.s.toLowerCase():""),cor:"crit"};
+  var nos=[E], ar=[];
+  quem.forEach(function(p,i){
+    var id="g"+i;
+    nos.push({id:id,x:24,y:26+i*84,w:264,h:62,tag:"gabinete",titulo:p.nome,
+              sub:p.partido+"/"+p.uf});
+    /* o valor de cada um, não "pagou com a cota" quatro vezes: rótulo repetido
+       não informa nada e ainda empilha em cima do vizinho */
+    ar.push({de:id,para:"e",destaque:true,t:0.34,
+             rotulo:pago[p.id]?brlCurto(pago[p.id]):"pagou com a cota"});
+  });
+  if(x.gabinetes>quem.length)
+    nos.push({id:"mais",x:24,y:26+quem.length*84,w:264,h:50,
+              titulo:"+ "+nf(x.gabinetes-quem.length)+" outros gabinetes"});
+  return cabModal("O circuito do vínculo",esc(x.empresa)+' &middot; '+cnpjFmt(x.cnpj))
+   +mapaCircuito(nos,ar,"Dinheiro público de "+plural(x.gabinetes,"gabinete")+" para uma empresa cujo cadastro destoa.",720,H)
+   +'<div class="card naoe" style="margin-bottom:12px">'
+     +x.motivos.map(function(m){return '<div><i>&#9888;</i><span>'+esc(m)+'</span></div>';}).join("")
+   +'</div>'
+   +rodapeCircuito(x);
 }
 
 /* o nome digitado na nota fiscal nem sempre é a razão social registrada */
@@ -2874,7 +3058,7 @@ function renderVinculos(){
   el("vi-parl").innerHTML=VINC.socio_parlamentar.length
     ?'<thead><tr><th>Parlamentar</th><th>Empresa</th><th>Papel na empresa</th><th>Conferência</th>'
     +'<th class="r">Pago pela campanha</th><th class="r">Pago pela cota</th></tr></thead><tbody>'
-    +VINC.socio_parlamentar.map(function(x){
+    +VINC.socio_parlamentar.map(function(x,i){
       var p=parlPorId(x.id);
       return '<tr class="alerta"><td>'+(p?linhaParl(p):esc(x.id))
         +(p?'<br><span class="hint mono">'+esc(p.partido)+'/'+esc(p.uf)+'</span>':'')+'</td>'
@@ -2886,7 +3070,7 @@ function renderVinculos(){
             :'<span class="chip warn"><i class="dot"></i>'+(x.cpf_disponivel?"só o nome bate":"CPF não publicado pela fonte")+'</span>')+'</td>'
         +'<td class="r">'+(x.campanha?brl(x.campanha):"—")+'</td>'
         +'<td class="r">'+(x.cota?brl(x.cota):(x.cota_outros?'<span class="hint">'+brlCurto(x.cota_outros)+' de outros</span>':"—"))+'</td></tr>'
-        +linhaLeitura(x,6);
+        +linhaLeitura(x,6,"parl",i);
     }).join("")+'</tbody>'
     :'<tbody><tr><td class="empty">Nenhum caso encontrado com os critérios acima.</td></tr></tbody>';
 
@@ -2910,7 +3094,7 @@ function renderVinculos(){
         +'<td class="r">'+brl(tot)+'<br><span class="hint">'
           +(x.cota?brlCurto(x.cota)+' de cota':'')+(x.cota&&x.campanha?' · ':'')
           +(x.campanha?brlCurto(x.campanha)+' da campanha':'')+'</span></td></tr>'
-        +linhaLeitura(x,5);
+        +linhaLeitura(x,5,"doador",VINC.socio_doador.indexOf(x));
     }).join("")+'</tbody>'
     :'<tbody><tr><td class="empty">Nenhum caso corresponde a essa busca.</td></tr></tbody>';
 
@@ -2934,7 +3118,7 @@ function renderVinculos(){
         +'<td>'+x.motivos.map(esc).join("<br>")+'</td>'
         +'<td class="r">'+brl(x.cota)+'</td>'
         +'<td class="r">'+nf(x.gabinetes)+'</td></tr>'
-        +linhaLeitura(x,5);
+        +linhaLeitura(x,5,"cadastro",VINC.cadastro.indexOf(x));
     }).join("")+'</tbody>'
     :'<tbody><tr><td class="empty">Nenhuma empresa corresponde a esse filtro.</td></tr></tbody>';
 }
