@@ -885,6 +885,7 @@ function foto(p,cls){
   return '<span class="foto'+(cls?" "+cls:"")+'" role="img" aria-label="Foto oficial de '+esc(p.nome)+'"'
     +' style="--sp:url(sp'+p.sp[0]+'.jpg);--c:'+p.sp[1]+';--rw:'+p.sp[2]+'"></span>';
 }
+var SPR=DADOS.sprite||{cel:112,cols:12,folhas:6};
 function gasto(p){return p.cota?p.cota.total:0;}
 
 /* ---------- agregados sobre os registros reais ---------- */
@@ -2908,95 +2909,97 @@ function quebra(t,max){
     else { l.push(atual); atual=w; }
   });
   if(atual) l.push(atual);
-  return l.slice(0,3);
+  return l.slice(0,2);
 }
-/* cada nó é um campo de formulário contábil: tarja de rubrica em cima, filete,
-   o nome, e o número embaixo em letra de máquina */
-function caixaSVG(n){
+function iniciais(nome){
+  var p=String(nome||"").replace(/\b(LTDA|S\.?A\.?|ME|EPP|EIRELI|DE|DA|DO|E)\b/gi,"")
+    .trim().split(/\s+/).filter(Boolean);
+  return ((p[0]||"?").charAt(0)+(p[1]||"").charAt(0)).toUpperCase();
+}
+/* retrato oficial recortado da folha de sprites, dentro de um círculo */
+function retratoSVG(p,cx,cy,r,id){
+  if(!p||!p.sp) return "";
+  var cel=SPR.cel, esc2=(r*2)/cel;
+  var x=cx-r-p.sp[1]*cel*esc2, y=cy-r-p.sp[2]*cel*esc2;
+  return '<clipPath id="'+id+'"><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'"/></clipPath>'
+    +'<image href="sp'+p.sp[0]+'.jpg" x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" '
+    +'width="'+(SPR.cols*cel*esc2).toFixed(1)+'" clip-path="url(#'+id+')" preserveAspectRatio="none"/>';
+}
+/* ---------- o circuito desenhado ----------
+   Nó é disco, não caixa: pessoa entra com o retrato oficial, empresa com a
+   sigla. A ligação é fita curva cuja ESPESSURA é o valor — quem olha de longe
+   já vê por onde passou mais dinheiro, sem ler número nenhum. */
+function noSVG(n,i){
   var cor=n.cor?"var(--"+n.cor+")":"var(--line-2)";
-  var linhas=quebra(n.titulo,n.w>270?30:24);
-  var hTarja=n.tag?22:0;
-  var yTitulo=n.y+hTarja+(n.tag?20:24), ySub=n.y+n.h-11;
-  return '<g>'
-    +'<rect x="'+n.x+'" y="'+n.y+'" width="'+n.w+'" height="'+n.h+'" rx="3" '
-      +'fill="var(--surface)" stroke="'+cor+'" stroke-width="'+(n.cor?1.8:1.1)+'"/>'
-    +(n.tag
-      ?'<rect x="'+n.x+'" y="'+n.y+'" width="'+n.w+'" height="'+hTarja+'" rx="3" '
-        +'fill="'+(n.cor?"var(--crit-veu-2)":"var(--surface-3)")+'"/>'
-       +'<rect x="'+n.x+'" y="'+(n.y+hTarja-1)+'" width="'+n.w+'" height="1" fill="'+cor+'" fill-opacity="0.6"/>'
-       +'<text x="'+(n.x+12)+'" y="'+(n.y+15)+'" font-size="9" letter-spacing="1.6" font-weight="600" '
-        +'fill="'+(n.cor?"var(--crit)":"var(--muted)")+'" style="text-transform:uppercase">'+esc(n.tag)+'</text>'
-      :'')
-    +linhas.map(function(t,i){
-      return '<text x="'+(n.x+12)+'" y="'+(yTitulo+i*15)+'" font-size="13.5" font-weight="600" '
+  var r=n.r||46, dentro;
+  if(n.parl&&n.parl.sp){
+    dentro=retratoSVG(n.parl,n.cx,n.cy,r-3,"rec"+i)
+      +'<circle cx="'+n.cx+'" cy="'+n.cy+'" r="'+(r-3)+'" fill="none" stroke="var(--bg)" stroke-width="1"/>';
+  } else {
+    dentro='<circle cx="'+n.cx+'" cy="'+n.cy+'" r="'+(r-3)+'" fill="var(--surface-2)"/>'
+      +'<text x="'+n.cx+'" y="'+(n.cy+7)+'" text-anchor="middle" font-size="'+(r>38?20:16)+'" '
+      +'font-weight="700" fill="'+cor+'" style="font-family:var(--display)">'+esc(n.sigla||iniciais(n.titulo))+'</text>';
+  }
+  /* rótulo acima ou abaixo do disco: embaixo de todos, a fita que chega por
+     baixo passa por cima do nome */
+  var linhas=quebra(n.titulo,n.larg||20);
+  var alt=(n.tag?16:0)+linhas.length*16+(n.sub?13:0);
+  var ty=n.acima ? n.cy-r-alt+6 : n.cy+r+(n.tag?34:20);
+  var tagY=n.acima ? ty-16 : n.cy+r+16;
+  return '<g>'+dentro
+    +'<circle cx="'+n.cx+'" cy="'+n.cy+'" r="'+r+'" fill="none" stroke="'+cor+'" stroke-width="'+(n.cor?2.5:1.5)+'"/>'
+    +(n.tag?'<text x="'+n.cx+'" y="'+tagY+'" text-anchor="middle" font-size="9" letter-spacing="1.5" '
+      +'font-weight="600" fill="'+(n.cor?"var(--crit)":"var(--muted)")+'" style="text-transform:uppercase">'
+      +esc(n.tag)+'</text>':'')
+    +linhas.map(function(t,k){
+      return '<text x="'+n.cx+'" y="'+(ty+k*16)+'" text-anchor="middle" font-size="13.5" font-weight="600" '
         +'fill="var(--ink)">'+esc(t)+'</text>';
     }).join("")
-    +(n.sub?'<text x="'+(n.x+12)+'" y="'+ySub+'" font-size="10.5" fill="var(--muted)" '
-      +'style="font-family:var(--mono)">'+esc(n.sub)+'</text>':'')
+    +(n.sub?'<text x="'+n.cx+'" y="'+(ty+linhas.length*16+1)+'" text-anchor="middle" font-size="10" '
+      +'fill="var(--muted)" style="font-family:var(--mono)">'+esc(n.sub)+'</text>':'')
     +'</g>';
-}
-function bordaDe(n,ax,ay){
-  /* onde a seta encosta na caixa: evita a linha entrar por cima do texto */
-  var cx=n.x+n.w/2, cy=n.y+n.h/2, dx=ax-cx, dy=ay-cy;
-  if(!dx&&!dy) return [cx,cy];
-  var ex=Math.abs(dx)>0.0001?(n.w/2+8)/Math.abs(dx):1e9;
-  var ey=Math.abs(dy)>0.0001?(n.h/2+8)/Math.abs(dy):1e9;
-  var t=Math.min(ex,ey);
-  return [cx+dx*t,cy+dy*t];
 }
 function mapaCircuito(nos,arestas,rotulo,W,H){
   var idx={}; nos.forEach(function(n){idx[n.id]=n;});
-  var rotulos=[];
-  var linhas=arestas.map(function(a){
-    var de=idx[a.de], para=idx[a.para]; if(!de||!para) return "";
-    var c1=[de.x+de.w/2,de.y+de.h/2], c2=[para.x+para.w/2,para.y+para.h/2];
-    var p1=bordaDe(de,c2[0],c2[1]), p2=bordaDe(para,c1[0],c1[1]);
-    /* ocre é dinheiro andando; vermelho é identidade — o fio que faz o circuito
-       voltar para quem mandou o dinheiro sair */
+  var maxV=1;
+  arestas.forEach(function(a){ if(a.valor>maxV) maxV=a.valor; });
+  var fitas=[], rotulos=[];
+  arestas.forEach(function(a,k){
+    var de=idx[a.de], para=idx[a.para]; if(!de||!para) return;
+    var rd=(de.r||46), rp=(para.r||46);
+    var vx=para.cx-de.cx, vy=para.cy-de.cy, comp=Math.sqrt(vx*vx+vy*vy)||1;
+    var ux=vx/comp, uy=vy/comp;
+    var p1=[de.cx+ux*(rd+3), de.cy+uy*(rd+3)];
+    var p2=[para.cx-ux*(rp+9), para.cy-uy*(rp+9)];
+    var mx=(p1[0]+p2[0])/2, my=(p1[1]+p2[1])/2;
+    var curva=(typeof a.curva==="number")?a.curva:0;
+    var qx=mx-uy*curva, qy=my+ux*curva;
+    /* espessura é o valor: 4px no menor, 26px no maior da cena */
+    var w=a.valor?(4+22*Math.sqrt(a.valor/maxV)):(a.destaque?3:2);
     var cor=a.destaque?"var(--crit)":(a.dinheiro?"var(--warn)":"var(--line-2)");
-    /* t move o rótulo ao longo da seta: com várias setas chegando no mesmo nó,
-       rótulo no meio de todas elas vira uma pilha ilegível */
-    var t=(typeof a.t==="number")?a.t:0.5;
-    var mx=p1[0]+(p2[0]-p1[0])*t, my=p1[1]+(p2[1]-p1[1])*t;
-    var texto=String(a.rotulo||""), larg=texto.length*5.9+16;
-    /* curva: a seta de retorno precisa contornar as caixas do meio em vez de
-       passar por baixo delas */
-    var caminho="", nx=0, ny=0;
-    if(a.curva){
-      var vx=p2[0]-p1[0], vy=p2[1]-p1[1], comp=Math.sqrt(vx*vx+vy*vy)||1;
-      var qx=mx-(vy/comp)*a.curva, qy=my+(vx/comp)*a.curva;
-      caminho="M"+p1[0].toFixed(1)+" "+p1[1].toFixed(1)+" Q"+qx.toFixed(1)+" "+qy.toFixed(1)
-        +" "+p2[0].toFixed(1)+" "+p2[1].toFixed(1);
-      mx=0.25*p1[0]+0.5*qx+0.25*p2[0];   /* ponto médio real da quadrática */
-      my=0.25*p1[1]+0.5*qy+0.25*p2[1];
+    var d="M"+p1[0].toFixed(1)+" "+p1[1].toFixed(1)+" Q"+qx.toFixed(1)+" "+qy.toFixed(1)
+      +" "+p2[0].toFixed(1)+" "+p2[1].toFixed(1);
+    /* duas passadas: uma larga e translúcida como rastro, outra fina e firme
+       por dentro — dá a sensação de fita sem depender de gradiente */
+    fitas.push('<path d="'+d+'" fill="none" stroke="'+cor+'" stroke-width="'+w.toFixed(1)+'" '
+      +'stroke-opacity="0.3" stroke-linecap="round"'+(a.tracejada?' stroke-dasharray="2 9"':'')+'/>'
+      +'<path d="'+d+'" fill="none" stroke="'+cor+'" stroke-width="'+Math.max(1.6,w*0.3).toFixed(1)+'" '
+      +'stroke-opacity="0.95" stroke-linecap="round"'+(a.tracejada?' stroke-dasharray="2 9"':'')+'/>'
+      +'<circle cx="'+p2[0].toFixed(1)+'" cy="'+p2[1].toFixed(1)+'" r="'+Math.max(3.5,w/3).toFixed(1)+'" fill="'+cor+'"/>');
+    if(a.rotulo){
+      var t=(typeof a.t==="number")?a.t:0.5;
+      var lx=(1-t)*(1-t)*p1[0]+2*(1-t)*t*qx+t*t*p2[0];
+      var ly=(1-t)*(1-t)*p1[1]+2*(1-t)*t*qy+t*t*p2[1];
+      var larg=String(a.rotulo).length*6.0+18;
+      rotulos.push('<g><rect x="'+(lx-larg/2).toFixed(1)+'" y="'+(ly-11).toFixed(1)+'" width="'+larg.toFixed(1)
+        +'" height="22" rx="11" fill="var(--bg)" stroke="'+cor+'" stroke-opacity="0.55"/>'
+        +'<text x="'+lx.toFixed(1)+'" y="'+(ly+4).toFixed(1)+'" text-anchor="middle" font-size="11" '
+        +'font-weight="600" style="font-family:var(--mono)" fill="'+cor+'">'+esc(a.rotulo)+'</text></g>');
     }
-    if(texto) rotulos.push('<g><rect x="'+(mx-larg/2).toFixed(1)+'" y="'+(my-10).toFixed(1)
-        +'" width="'+larg.toFixed(1)+'" height="20" rx="3" fill="var(--bg)" stroke="'+cor
-        +'" stroke-opacity="0.55"/>'
-        +'<text x="'+mx.toFixed(1)+'" y="'+(my+4).toFixed(1)+'" font-size="10.5" text-anchor="middle" '
-        +'font-weight="500" style="font-family:var(--mono)" fill="'
-        +(a.destaque?"var(--crit)":(a.dinheiro?"var(--warn)":"var(--muted)"))+'">'+esc(texto)+'</text></g>');
-    var traco='stroke="'+cor+'" stroke-width="'+(a.destaque?2:1.4)+'" fill="none" stroke-opacity="'
-      +(a.destaque?1:(a.dinheiro?0.9:0.5))+'" marker-end="url(#seta'
-      +(a.destaque?"-f":(a.dinheiro?"-d":""))+')"';
-    return caminho
-      ? '<path d="'+caminho+'" '+traco+'/>'
-      : '<line x1="'+p1[0].toFixed(1)+'" y1="'+p1[1].toFixed(1)+'" x2="'+p2[0].toFixed(1)
-        +'" y2="'+p2[1].toFixed(1)+'" '+traco+'/>';
-  }).join("");
+  });
   return '<figure class="circuito"><svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(rotulo)+'" '
     +'style="font-family:var(--body);color:var(--ink)">'
-    +'<defs>'
-    +'<marker id="seta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">'
-      +'<path d="M0 0 L10 5 L0 10 z" fill="currentColor" fill-opacity="0.55"/></marker>'
-    +'<marker id="seta-f" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">'
-      +'<path d="M0 0 L10 5 L0 10 z" fill="var(--crit)"/></marker>'
-    +'<marker id="seta-d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">'
-      +'<path d="M0 0 L10 5 L0 10 z" fill="var(--warn)"/></marker>'
-    +'</defs>'
-    /* ordem importa: setas, caixas, e os rótulos por último — caixa desenhada
-       depois do rótulo come o texto que encosta nela */
-    +linhas+nos.map(caixaSVG).join("")+rotulos.join("")
+    +fitas.join("")+nos.map(noSVG).join("")+rotulos.join("")
     +'</svg><figcaption>'+esc(rotulo)+'</figcaption></figure>';
 }
 
@@ -3025,28 +3028,25 @@ function mapaDoVinculo(tipo,x){
 }
 function mapaParl(x){
   var p=parlPorId(x.id), e=empresaDe(x.cnpj);
-  var A={id:"p",x:24,y:26,w:260,h:88,tag:"parlamentar",titulo:p?p.nome:x.id,
-         sub:p?p.cargo+" · "+p.partido+"/"+p.uf:""};
-  var B={id:"e",x:436,y:26,w:260,h:88,tag:"empresa",titulo:x.empresa,
-         sub:cnpjFmt(x.cnpj)+(e?" · "+e.s.toLowerCase():""),cor:"crit"};
-  var nos=[A,B], ar=[{de:"p",para:"e",rotulo:"é "+(x.qual||"sócio").toLowerCase(),destaque:true}];
-  var H=190;
+  var W=760,H=430;
+  var A={id:"p",cx:140,cy:190,r:50,parl:p,tag:"quem decide",acima:true,titulo:p?p.nome:x.id,
+         larg:18,sub:p?p.partido+"/"+p.uf:""};
+  var B={id:"e",cx:620,cy:190,r:50,cor:"crit",tag:"quem recebe",acima:true,titulo:x.empresa,
+         larg:19,sub:cnpjFmt(x.cnpj)};
+  var nos=[A,B], ar=[{de:"p",para:"e",rotulo:(x.qual||"sócio").toLowerCase(),destaque:true,curva:-72}];
   if(x.campanha){
-    var C={id:"c",x:230,y:250,w:260,h:76,tag:"dinheiro de campanha",
-           titulo:"Campanha eleitoral",sub:"prestação de contas ao TSE"};
-    nos.push(C); H=400;
-    ar.push({de:"p",para:"c",rotulo:"é o candidato"});
-    ar.push({de:"c",para:"e",rotulo:brlCurto(x.campanha),dinheiro:true});
+    nos.push({id:"c",cx:380,cy:330,r:40,titulo:"Campanha",sub:"contas ao TSE"});
+    ar.push({de:"p",para:"c",dinheiro:true});
+    ar.push({de:"c",para:"e",rotulo:brlCurto(x.campanha),dinheiro:true,valor:x.campanha});
   }
   if(x.cota){
-    var D={id:"q",x:x.campanha?24:230,y:x.campanha?250:200,w:260,h:76,tag:"dinheiro público",
-           titulo:"Cota parlamentar",sub:"verba de gabinete"};
-    if(x.campanha){ D.x=24; D.y=250; nos[2].x=400; }
-    nos.push(D); H=400;
-    ar.push({de:"p",para:"q",rotulo:"é o titular"});
-    ar.push({de:"q",para:"e",rotulo:brlCurto(x.cota),dinheiro:true});
+    nos.push({id:"q",cx:380,cy:x.campanha?70:330,r:40,acima:!x.campanha,
+              titulo:"Cota do mandato",larg:16,sub:"verba pública"});
+    ar.push({de:"p",para:"q",dinheiro:true});
+    ar.push({de:"q",para:"e",rotulo:brlCurto(x.cota),dinheiro:true,valor:x.cota});
   }
-  return mapaCircuito(nos,ar,"As duas pontas do pagamento são a mesma pessoa: ela é sócia da empresa e é quem decide o gasto que vai para ela.",720,H);
+  return mapaCircuito(nos,ar,
+    "A fita vermelha é a sociedade; as ocres são o dinheiro, e a espessura delas é o valor.",W,H);
 }
 function circuitoParl(x){
   if(!x) return "";
@@ -3059,20 +3059,17 @@ function circuitoParl(x){
 }
 function mapaDoador(x){
   var p=parlPorId(x.id);
-  var A={id:"d",x:24,y:26,w:270,h:88,tag:"doador e sócio",titulo:x.socio,
-         sub:(x.qual||"sócio")+" da empresa",cor:"crit"};
-  var B={id:"e",x:426,y:26,w:270,h:88,tag:"empresa",titulo:x.empresa,
-         sub:cnpjFmt(x.cnpj)};
-  var C={id:"c",x:225,y:258,w:270,h:88,tag:"parlamentar",titulo:p?p.nome:x.id,
-         sub:p?p.partido+"/"+p.uf+" · campanha e mandato":""};
-  var volta=[];
-  if(x.campanha) volta.push("campanha "+brlCurto(x.campanha));
-  if(x.cota) volta.push("cota "+brlCurto(x.cota));
+  var A={id:"d",cx:140,cy:200,r:48,cor:"crit",tag:"doador e sócio",acima:true,titulo:x.socio,larg:17,
+         sub:(x.qual||"sócio")};
+  var B={id:"e",cx:620,cy:200,r:48,tag:"empresa dele",acima:true,titulo:x.empresa,larg:18,sub:cnpjFmt(x.cnpj)};
+  var C={id:"c",cx:380,cy:366,r:50,parl:p,tag:"parlamentar",titulo:p?p.nome:x.id,larg:18,
+         sub:p?p.partido+"/"+p.uf:""};
+  var volta=x.campanha+x.cota;
   return mapaCircuito([A,B,C],[
-      {de:"d",para:"c",rotulo:"doou "+brlCurto(x.doou),dinheiro:true},
-      {de:"c",para:"e",rotulo:volta.join(" + "),dinheiro:true},
-      {de:"d",para:"e",rotulo:"é "+(x.qual||"sócio").toLowerCase()}
-     ],"O dinheiro sai de quem doou e volta para uma empresa da mesma pessoa.",720,400);
+      {de:"d",para:"c",rotulo:brlCurto(x.doou),dinheiro:true,valor:x.doou,curva:40},
+      {de:"c",para:"e",rotulo:brlCurto(volta),dinheiro:true,valor:volta,curva:40},
+      {de:"d",para:"e",rotulo:"é "+(x.qual||"sócio").toLowerCase(),destaque:true,curva:-66}
+     ],"O dinheiro sai de quem doou, passa pelo parlamentar e volta para uma empresa da mesma pessoa.",760,490);
 }
 function circuitoDoador(x){
   if(!x) return "";
@@ -3083,25 +3080,21 @@ function circuitoDoador(x){
 function mapaCadastro(x){
   var f=fornPorCnpj(x.cnpj), pago={};
   if(f) f.pagantes.forEach(function(d){pago[d.id]=d.valor;});
-  var quem=x.quem.slice(0,4).map(parlPorId).filter(Boolean);
   var e=empresaDe(x.cnpj);
-  var H=Math.max(280,56+(quem.length+(x.gabinetes>quem.length?1:0))*84);
-  var E={id:"e",x:410,y:H/2-50,w:286,h:100,tag:"empresa",titulo:x.empresa,
-         sub:cnpjFmt(x.cnpj)+(e?" · "+e.s.toLowerCase():""),cor:"crit"};
+  var quem=x.quem.slice(0,5).map(parlPorId).filter(Boolean);
+  var W=760, H=Math.max(360,120+quem.length*96);
+  var E={id:"e",cx:600,cy:H/2,r:62,cor:"crit",tag:"empresa",titulo:x.empresa,larg:24,
+         sub:cnpjFmt(x.cnpj)+(e?" · "+e.s.toLowerCase():"")};
   var nos=[E], ar=[];
+  var topo=(H-(quem.length-1)*96)/2;
   quem.forEach(function(p,i){
     var id="g"+i;
-    nos.push({id:id,x:24,y:26+i*84,w:264,h:62,tag:"gabinete",titulo:p.nome,
-              sub:p.partido+"/"+p.uf});
-    /* o valor de cada um, não "pagou com a cota" quatro vezes: rótulo repetido
-       não informa nada e ainda empilha em cima do vizinho */
-    ar.push({de:id,para:"e",dinheiro:true,t:0.34,
+    nos.push({id:id,cx:132,cy:topo+i*96,r:34,parl:p,titulo:p.nome,larg:18,sub:p.partido+"/"+p.uf});
+    ar.push({de:id,para:"e",dinheiro:true,valor:pago[p.id]||0,t:0.42,
              rotulo:pago[p.id]?brlCurto(pago[p.id]):"cota"});
   });
-  if(x.gabinetes>quem.length)
-    nos.push({id:"mais",x:24,y:26+quem.length*84,w:264,h:50,
-              titulo:"+ "+nf(x.gabinetes-quem.length)+" outros gabinetes"});
-  return mapaCircuito(nos,ar,"Dinheiro público de "+plural(x.gabinetes,"gabinete")+" para uma empresa cujo cadastro destoa.",720,H);
+  return mapaCircuito(nos,ar,
+    "Cada fita é um gabinete pagando com a cota; a espessura é o quanto. "+plural(x.gabinetes,"gabinete")+" no total.",W,H);
 }
 function circuitoCadastro(x){
   if(!x) return "";
@@ -3299,28 +3292,29 @@ function renderFontes(){
   var alvo=el("hero-fig"); if(!alvo) return;
   var somaCamp=0, ultimo=ANOS_CAMP[ANOS_CAMP.length-1];
   COM_CAMP.forEach(function(p){ var c=campDe(p,ultimo); if(c) somaCamp+=c.total; });
-  /* desenho vertical: na coluna estreita do hero, o mesmo diagrama deitado
-     encolhe a ponto de a letra não se ler */
+  /* no hero o circuito é um anel: o dinheiro sai do parlamentar por dois
+     caminhos, chega na empresa, e o fio vermelho pergunta de quem ela é */
   var nos=[
-    {id:"p",x:142,y:8,w:236,h:66,tag:"quem decide",titulo:"Parlamentar",
-     sub:nf(PARL.length)+" em exercício"},
-    {id:"c",x:6,y:124,w:236,h:62,titulo:"Campanha",sub:brlCurto(somaCamp)+" em "+ultimo},
-    {id:"q",x:278,y:124,w:236,h:62,titulo:"Cota do mandato",sub:brlCurto(GASTO_TOTAL)+" desde "+ANO0},
-    {id:"e",x:142,y:240,w:236,h:70,tag:"quem recebe",titulo:"Empresa",
-     sub:nf(Object.keys(EMPRESAS).length)+" CNPJ lidos"},
-    {id:"s",x:142,y:364,w:236,h:68,titulo:"Sócio",
-     sub:"é a mesma pessoa do começo?",cor:"crit"}
+    {id:"p",cx:130,cy:210,r:52,tag:"quem decide",titulo:"Parlamentar",larg:16,
+     sub:"em exercício",sigla:nf(PARL.length)},
+    {id:"c",cx:330,cy:84,r:40,acima:true,titulo:"Campanha",larg:16,sub:brlCurto(somaCamp),sigla:"TSE"},
+    {id:"q",cx:330,cy:356,r:40,titulo:"Cota do mandato",larg:16,sub:brlCurto(GASTO_TOTAL),sigla:"CÂM"},
+    {id:"e",cx:540,cy:210,r:52,tag:"quem recebe",titulo:"Empresa",larg:16,
+     sub:nf(Object.keys(EMPRESAS).length)+" CNPJ",sigla:"CNPJ"},
+    {id:"s",cx:540,cy:210,r:0,titulo:""}
   ];
+  nos.pop();
   var ar=[
-    {de:"p",para:"c",rotulo:"banca",dinheiro:true},
-    {de:"p",para:"q",rotulo:"gasta",dinheiro:true},
-    {de:"c",para:"e",rotulo:"paga",dinheiro:true},
-    {de:"q",para:"e",rotulo:"paga",dinheiro:true},
-    {de:"e",para:"s",rotulo:"quadro societário",destaque:true}
+    {de:"p",para:"c",dinheiro:true,valor:somaCamp,curva:-26},
+    {de:"p",para:"q",dinheiro:true,valor:GASTO_TOTAL,curva:26},
+    {de:"c",para:"e",dinheiro:true,valor:somaCamp,curva:-26},
+    {de:"q",para:"e",dinheiro:true,valor:GASTO_TOTAL,curva:26},
+    /* o atalho vermelho corta o anel pelo meio: é a pergunta que fecha o circuito */
+    {de:"e",para:"p",rotulo:"de quem é essa empresa?",destaque:true,curva:0}
   ];
   alvo.innerHTML=mapaCircuito(nos,ar,
     "Os dois caminhos do dinheiro chegam na mesma empresa. O quadro societário diz de quem ela é — e às vezes o nome volta ao começo.",
-    520,444);
+    680,470);
 })();
 
 /* ---------- boot ---------- */
