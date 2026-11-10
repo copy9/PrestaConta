@@ -244,6 +244,42 @@ tr.leitura b{color:var(--ink);font-weight:700}
   border:1.5px solid var(--line-2);border-radius:99px;padding:10px 16px;cursor:pointer;letter-spacing:-0.015em}
 .atalhos button:hover{color:var(--accent-ink);background:var(--accent);border-color:var(--accent)}
 
+/* ---------- a vitrine da ferramenta, no alto da home ---------- */
+.vitrine{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.02fr);gap:30px 40px;
+  background:linear-gradient(160deg,var(--accent-veu),transparent 60%),var(--surface);
+  border:1px solid var(--line-2);border-left:5px solid var(--accent);
+  border-radius:var(--r);padding:28px;box-shadow:var(--sombra)}
+@media (max-width:900px){.vitrine{grid-template-columns:1fr;padding:22px;gap:22px}}
+.vitrine h2{font-size:clamp(23px,2.6vw,31px);margin-top:10px;letter-spacing:-0.035em}
+.vlede{font-size:16px;color:var(--ink-2);margin-top:14px;line-height:1.6;max-width:52ch}
+.vlede b{color:var(--ink);font-weight:700}
+.vlista{display:grid;gap:10px;align-content:start}
+.vcard{display:grid;gap:7px;justify-items:start;text-align:left;font:inherit;color:inherit;cursor:pointer;
+  background:var(--bg);border:1px solid var(--line);border-radius:var(--r-sm);padding:15px 17px}
+.vcard:hover{border-color:var(--accent)}
+.vcard b{font-family:var(--display);font-size:15.5px;font-weight:700;letter-spacing:-0.02em;line-height:1.3}
+.vcard small{font-size:13.5px;color:var(--muted);line-height:1.5}
+.vcard .vpe{display:flex;gap:10px;justify-content:space-between;width:100%;align-items:baseline;
+  font-size:13px;font-weight:600;color:var(--ink-2)}
+.vcard .vpe i{font-style:normal;font-family:var(--display);font-weight:800;color:var(--accent);
+  font-variant-numeric:tabular-nums}
+/* o selo com a contagem, no botão da navegação */
+.tabs button.destaque{color:var(--crit)}
+.tabs button.destaque svg{opacity:1}
+.tabs button.destaque:hover{background:var(--crit-bg)}
+.tabs button.destaque[aria-current=page]{background:var(--crit);color:#fff}
+.selo{font-family:var(--display);font-style:normal;font-size:11.5px;font-weight:800;
+  background:var(--crit);color:#fff;border-radius:99px;padding:1px 7px;line-height:1.5;
+  font-variant-numeric:tabular-nums}
+.tabs button.destaque[aria-current=page] .selo{background:rgba(255,255,255,.25)}
+/* o nível de cada achado dá a cor da borda do cartão */
+.alerta-card.n1{border-left-color:var(--crit)}
+.alerta-card.n2{border-left-color:var(--accent)}
+.alerta-card.n3{border-left-color:var(--data)}
+.alerta-card .meta2{display:flex;flex-wrap:wrap;align-items:center;gap:9px}
+.chamada.teia{background:var(--crit-bg);color:var(--crit)}
+.chamada.teia:hover{background:var(--crit);color:#fff}
+
 /* ---------- início ---------- */
 .hero{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);gap:40px;align-items:center;padding-block:22px 10px}
 @media (max-width:900px){.hero{grid-template-columns:1fr;gap:28px}}
@@ -555,6 +591,7 @@ img{max-width:100%}
     <nav class="tabs" aria-label="Seções do site">
       <button type="button" data-go="inicio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-6.5 8 6.5v8a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19z"/></svg>Início</button>
       <button type="button" data-go="parlamentares"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/></svg>Os políticos</button>
+      <button type="button" class="destaque" data-go="achados"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l8.5 15H3.5z"/><path d="M12 9.5v4M12 16.2v.3"/></svg>Sinais de alerta<i class="selo" id="nav-ac"></i></button>
       <span class="grupo">
         <button type="button" class="gbtn" data-menu="m-dinheiro" aria-expanded="false" aria-haspopup="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.5"/></svg>O dinheiro deles<i class="ca" aria-hidden="true"></i></button>
         <span class="menupanel" id="m-dinheiro" hidden>
@@ -578,7 +615,7 @@ img{max-width:100%}
           <button type="button" data-go="composicao"><b>Quem está lá</b><small>Quantos cada partido e cada estado têm</small></button>
         </span>
       </span>
-      <button type="button" data-go="fontes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h8.5L19 8v12.5H6z"/><path d="M9 12h7M9 16h7"/></svg>De onde vêm os dados</button>
+      <button type="button" data-go="fontes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h8.5L19 8v12.5H6z"/><path d="M9 12h7M9 16h7"/></svg>As fontes</button>
     </nav>
   </div>
 </div>
@@ -587,7 +624,7 @@ img{max-width:100%}
   <button type="button" data-go="inicio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-6.5 8 6.5v8a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19z"/></svg><span>Início</span></button>
   <button type="button" data-go="parlamentares"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/></svg><span>Políticos</span></button>
   <button type="button" data-foco="busca"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l4.5 4.5"/></svg><span>Procurar</span></button>
-  <button type="button" data-go="cota"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.5"/></svg><span>Gastos</span></button>
+  <button type="button" data-go="achados"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l8.5 15H3.5z"/><path d="M12 9.5v4M12 16.2v.3"/></svg><span>Alertas</span></button>
   <button type="button" data-go="vinculos"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="7" r="2.8"/><circle cx="18" cy="17" r="2.8"/><path d="M8.6 8.4l6.8 7.2"/></svg><span>Empresas</span></button>
 </nav>
 
@@ -611,13 +648,15 @@ img{max-width:100%}
         <div class="atalhos">
           <button type="button" data-go="parlamentares">Ver todos os 594</button>
           <button type="button" data-go="cota">Quem gastou mais?</button>
-          <button type="button" data-go="vinculos">Quem tem empresa?</button>
+          <button type="button" data-go="achados">O que vocês acharam?</button>
         </div>
       </div>
       <div id="hero-fig"></div>
     </div>
 
     <div class="statstrip" id="inicio-stats"></div>
+
+    <div class="vitrine" id="inicio-achados"></div>
 
     <div class="sec rule editorial">
       <p class="eyebrow">Por que este site existe</p>
@@ -689,6 +728,43 @@ img{max-width:100%}
         <header><div><h2>O que ainda não aparece aqui</h2><small>Cada item depende de um banco de dados oficial que ainda não entrou no site</small></div></header>
         <div class="card naoe" id="pl-falta"></div>
       </div>
+    </div>
+  </section>
+
+
+  <!-- ============ SINAIS DE ALERTA ============ -->
+  <section class="view" id="view-achados" hidden>
+    <div class="sec">
+      <header><div><h2>O que o site encontrou sozinho</h2>
+        <small id="ac-sub"></small></div></header>
+      <div class="statstrip" id="ac-stats"></div>
+      <div class="card oque" style="border-radius:var(--r)">
+        <p><b>Como isto funciona.</b> O site cruza cinco bases oficiais e procura dez situações que, por experiência de auditoria, merecem um segundo olhar — a empresa que recebeu ser do próprio político, duas empresas do mesmo gabinete terem o mesmo dono, uma empresa viver de um gabinete só, e assim por diante.</p>
+        <p><b>Não é acusação.</b> Cada achado aqui é uma <b>coincidência entre registros públicos</b>, não uma denúncia. A maioria tem explicação simples e legal. O que o site faz é mostrar onde olhar primeiro, com o número e a fonte na mão — o julgamento é seu, e a apuração é de quem tem poder para fazê-la.</p>
+      </div>
+    </div>
+
+    <div class="sec rule">
+      <header><div><h2>Escolha o que quer ver</h2><small>São três níveis: vínculo confirmado, merece checagem e coincidência</small></div></header>
+      <div class="filtros">
+        <label>Procurar<span class="busca"><svg class="lupa" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><line x1="10.9" y1="10.9" x2="14.4" y2="14.4"/></svg><input type="search" id="ac-q" placeholder="político, empresa ou CNPJ" autocomplete="off"></span></label>
+        <label>Tipo de achado<select id="ac-tipo"></select></label>
+        <label>Nível<select id="ac-grav">
+          <option value="">Todos os níveis</option>
+          <option value="1">Só vínculo confirmado</option>
+          <option value="2">Só o que merece checagem</option>
+          <option value="3">Só coincidências</option>
+        </select></label>
+        <label>Partido<select id="ac-partido"><option value="">Todos</option></select></label>
+        <label>Estado<select id="ac-uf"><option value="">Todos</option></select></label>
+        <label>Ordenar<select id="ac-ord">
+          <option value="grav">Mais forte primeiro</option>
+          <option value="valor">Maior valor envolvido</option>
+        </select></label>
+      </div>
+      <p class="achou" id="ac-achou"></p>
+      <div class="alertas" id="ac-lista"></div>
+      <button type="button" class="btn maisbtn" id="ac-mais" hidden></button>
     </div>
   </section>
 
@@ -1272,7 +1348,7 @@ el("pl-falta").innerHTML=FALTA.map(function(l){
   return '<div><i>&#9888;</i><span><b>'+esc(l[0])+'</b> '+esc(l[1])+'</span></div>';}).join("");
 
 /* ---------- navegação ---------- */
-var VIEWS=["inicio","parlamentares","patrimonio","campanha","votacoes","emendas","vinculos","cota","ligacoes","composicao","fontes"];
+var VIEWS=["inicio","parlamentares","achados","patrimonio","campanha","votacoes","emendas","vinculos","cota","ligacoes","composicao","fontes"];
 var current="inicio", sel=null;
 function go(name,opts){
   if(VIEWS.indexOf(name)<0) name="inicio";
@@ -1290,6 +1366,7 @@ function go(name,opts){
     el("pl-lista").hidden=!!sel; el("pl-ficha-wrap").hidden=!sel;
     if(sel) renderFicha(); else renderGrade();
   }
+  if(name==="achados"){ acMostrando=AC_PAG; renderAchados(); }
   if(name==="patrimonio") renderPatrimonio();
   if(name==="campanha") renderCampanha();
   if(name==="votacoes") renderVotacoes();
@@ -3766,6 +3843,164 @@ function renderAlertas(serve,filtrando){
 }
 el("al-tipo").addEventListener("change",renderVinculos);
 el("al-q").addEventListener("input",renderVinculos);
+
+/* ---------- sinais de alerta: tudo o que o site encontrou, numa página só ----------
+   Os achados nasciam espalhados: o sócio que é o próprio parlamentar ficava
+   numa tabela, o doador que é sócio noutra, o cadastro estranho numa terceira,
+   e as cinco regras de coincidência num quarto bloco — todos dentro de
+   "Donos das empresas", onde ninguém ia dar de cara com eles. Aqui as quatro
+   famílias viram uma lista só, ordenada pela força da evidência.
+
+   Três níveis, e a diferença entre eles é o que a fonte garante:
+     1 vínculo confirmado — documento público liga as duas pontas (nome e CPF
+       parcial batem, ou a doação e a sociedade estão as duas declaradas)
+     2 merece checagem — o padrão é anômalo mas tem explicação possível
+     3 coincidência — bate, e bater pode ser acaso */
+var NIVEL={1:["Vínculo confirmado","crit"],2:["Merece checagem","warn"],3:["Coincidência","ml"]};
+var GRAV_REGRA={socio_repetido:2,socio_multi:2,exclusivo:2,emenda_mesma_cidade:3,campanha_e_cota:3};
+var NOMES_ACHADO={
+  socio_parl:"O próprio político é dono da empresa que recebeu",
+  socio_doa:"Quem pagou a campanha é dono da empresa que recebeu",
+  cadastro_estranho:"Empresa com cadastro que não fecha"
+};
+Object.keys(NOMES_ALERTA).forEach(function(k){ NOMES_ACHADO[k]=NOMES_ALERTA[k]; });
+
+var ACHADOS=(function(){
+  var L=[];
+  (VINC.socio_parlamentar||[]).forEach(function(x,i){
+    L.push({tipo:"socio_parl",grav:1,titulo:NOMES_ACHADO.socio_parl,leitura:x.leitura,circ:"parl:"+i,
+      valor:(x.cota||0)+(x.campanha||0),ids:[x.id],cnpjs:[x.cnpj]});
+  });
+  (VINC.socio_doador||[]).forEach(function(x,i){
+    L.push({tipo:"socio_doa",grav:1,titulo:NOMES_ACHADO.socio_doa,leitura:x.leitura,circ:"doador:"+i,
+      valor:(x.cota||0)+(x.campanha||0),ids:[x.id],cnpjs:[x.cnpj]});
+  });
+  (VINC.cadastro||[]).forEach(function(x,i){
+    L.push({tipo:"cadastro_estranho",grav:2,titulo:NOMES_ACHADO.cadastro_estranho,leitura:x.leitura,circ:"cadastro:"+i,
+      valor:x.cota||0,ids:(x.quem||[]).slice(),cnpjs:[x.cnpj]});
+  });
+  ALERTAS.forEach(function(a){
+    L.push({tipo:a.tipo,grav:GRAV_REGRA[a.tipo]||3,titulo:a.titulo,leitura:a.leitura,
+      valor:a.valor||0,ids:idsDoAlerta(a),cnpjs:(a.cnpjs||[]).slice()});
+  });
+  L.sort(function(a,b){ return a.grav-b.grav || b.valor-a.valor; });
+  return L;
+})();
+
+var AC_PAG=40, acMostrando=AC_PAG;
+(function montaFiltrosAchados(){
+  var ts={}; ACHADOS.forEach(function(a){ts[a.tipo]=(ts[a.tipo]||0)+1;});
+  el("ac-tipo").innerHTML='<option value="">Todos os tipos ('+nf(ACHADOS.length)+')</option>'
+    +Object.keys(ts).sort(function(x,y){
+       var ga=ACHADOS.find(function(a){return a.tipo===x;}).grav,
+           gb=ACHADOS.find(function(a){return a.tipo===y;}).grav;
+       return ga-gb || ts[y]-ts[x];
+     }).map(function(t){
+       return '<option value="'+t+'">'+esc(NOMES_ACHADO[t]||t)+' ('+nf(ts[t])+')</option>';
+     }).join("");
+  LISTA_PART.map(function(p){return p.sigla;}).sort().forEach(function(s){
+    el("ac-partido").insertAdjacentHTML("beforeend","<option>"+esc(s)+"</option>");});
+  LISTA_UF.map(function(u){return u.uf;}).sort().forEach(function(u){
+    el("ac-uf").insertAdjacentHTML("beforeend","<option>"+esc(u)+"</option>");});
+})();
+
+function renderAchados(){
+  var tipo=el("ac-tipo").value, q=el("ac-q").value, nv=el("ac-grav").value,
+      part=el("ac-partido").value, uf=el("ac-uf").value, ord=el("ac-ord").value;
+  var filtrando=!!(tipo||nv||part||uf||semAcento(q).trim());
+  var lista=ACHADOS.filter(function(a){
+    if(tipo&&a.tipo!==tipo) return false;
+    if(nv&&String(a.grav)!==nv) return false;
+    var quem=a.ids.map(parlPorId).filter(Boolean);
+    if(part&&!quem.some(function(p){return p.partido===part;})) return false;
+    if(uf&&!quem.some(function(p){return p.uf===uf;})) return false;
+    if(!semAcento(q).trim()) return true;
+    var nomes=quem.map(function(p){return p.nome+" "+p.partido+" "+p.uf;}).join(" ");
+    var emps=a.cnpjs.map(function(c){var e=empresaDe(c);return (e?e.r:"")+" "+c;}).join(" ");
+    return casaBusca(q,a.titulo+" "+nomes+" "+emps+" "+a.leitura);
+  });
+  if(ord==="valor") lista=lista.slice().sort(function(x,y){return y.valor-x.valor||x.grav-y.grav;});
+
+  var porNivel={1:0,2:0,3:0};
+  ACHADOS.forEach(function(a){porNivel[a.grav]++;});
+  el("ac-sub").textContent=nf(ACHADOS.length)+" coincidências encontradas em "
+    +nf(Object.keys(NOMES_ACHADO).length)+" tipos de cruzamento, sem ninguém pedir";
+  el("ac-stats").innerHTML=
+     '<div><b class="num">'+nf(ACHADOS.length)+'</b><span>achados no total</span></div>'
+    +'<div><b class="num" style="color:var(--crit)">'+nf(porNivel[1])+'</b><span>com vínculo confirmado por documento</span></div>'
+    +'<div><b class="num" style="color:var(--accent)">'+nf(porNivel[2])+'</b><span>que merecem checagem</span></div>'
+    +'<div><b class="num">'+nf(porNivel[3])+'</b><span>coincidências a conferir</span></div>';
+  el("ac-achou").textContent=filtrando
+    ? nf(lista.length)+(lista.length===1?" achado":" achados")+" com esses filtros" : "";
+
+  var vis=lista.slice(0,acMostrando);
+  el("ac-lista").innerHTML=vis.length? vis.map(function(a){
+      var quem=a.ids.map(parlPorId).filter(Boolean);
+      var nv=NIVEL[a.grav];
+      return '<div class="alerta-card n'+a.grav+'">'
+        +'<div class="meta2"><span class="chip '+nv[1]+'"><i class="dot"></i>'+nv[0]+'</span>'
+        /* nas três famílias confirmadas o tipo e o título são a mesma frase;
+           repeti-la ao lado da etiqueta só faz barulho */
+        +((NOMES_ACHADO[a.tipo]||a.tipo)!==a.titulo
+           ?'<span class="hint">'+esc(NOMES_ACHADO[a.tipo]||a.tipo)+'</span>':'')+'</div>'
+        +'<h4>'+esc(a.titulo)+(a.valor?'<span>'+brlCurto(a.valor)+'</span>':'')+'</h4>'
+        +'<p>'+esc(a.leitura)+'</p>'
+        +'<div class="meta2">'
+        +quem.slice(0,6).map(function(p){
+           return '<button type="button" class="chamada" data-pid="'+esc(p.id)+'">'+esc(p.nome)+'</button>';
+         }).join("")
+        +a.cnpjs.slice(0,4).map(function(c){
+           var e=empresaDe(c);
+           return '<button type="button" class="chamada" data-cnpj="'+esc(c)+'">'+esc(e?e.r.slice(0,36):cnpjFmt(c))+'</button>';
+         }).join("")
+        +(a.circ?'<button type="button" class="chamada teia" data-circuito="'+esc(a.circ)+'">ver a teia</button>':'')
+        +(quem.length>6?'<span class="hint">+'+nf(quem.length-6)+' parlamentares</span>':'')
+        +'</div></div>';
+    }).join("")
+    : '<p class="empty card">Nenhum achado corresponde a esses filtros.</p>';
+  var mais=el("ac-mais");
+  mais.hidden=lista.length<=vis.length;
+  mais.textContent="Mostrar mais "+nf(Math.min(AC_PAG,lista.length-vis.length));
+}
+el("ac-q").addEventListener("input",function(){acMostrando=AC_PAG;renderAchados();});
+["ac-tipo","ac-grav","ac-partido","ac-uf","ac-ord"].forEach(function(id){
+  el(id).addEventListener("change",function(){acMostrando=AC_PAG;renderAchados();});
+});
+el("ac-mais").addEventListener("click",function(){acMostrando+=AC_PAG;renderAchados();});
+
+/* a vitrine da home: a ferramenta não pode viver escondida numa aba interna,
+   então os três achados mais fortes aparecem logo abaixo dos números */
+(function vitrineAchados(){
+  var alvo=el("inicio-achados"); if(!alvo) return;
+  var n1=ACHADOS.filter(function(a){return a.grav===1;}).length;
+  /* um exemplo de cada tipo, não três do mesmo: a vitrine tem de mostrar a
+     variedade do que o cruzamento acha, não repetir o primeiro caso */
+  var vistos={}, tres=[];
+  ACHADOS.forEach(function(a){
+    if(tres.length>=3||vistos[a.tipo]) return;
+    vistos[a.tipo]=1; tres.push(a);
+  });
+  el("nav-ac").textContent=nf(ACHADOS.length);
+  alvo.innerHTML=''
+    +'<div><p class="eyebrow">A principal ferramenta deste site</p>'
+    +'<h2>O site cruzou tudo sozinho e encontrou '+nf(ACHADOS.length)+' coincidências</h2>'
+    +'<p class="vlede">Dez cruzamentos rodam sobre as cinco bases e desenham a teia: '
+    +'quem pagou a campanha, quem recebeu o dinheiro público, e quem é dono de quem. '
+    +'<b>'+nf(n1)+' delas têm vínculo confirmado por documento</b> — nome e CPF parcial batendo, '
+    +'ou doação e sociedade as duas declaradas.</p>'
+    +'<div class="cta"><button type="button" class="btn sim" data-go="achados">Ver os '+nf(ACHADOS.length)+' sinais de alerta</button></div></div>'
+    +'<div class="vlista">'
+    +tres.map(function(a){
+       var quem=a.ids.map(parlPorId).filter(Boolean), nv=NIVEL[a.grav];
+       return '<button type="button" class="vcard" data-go="achados">'
+         +'<span class="chip '+nv[1]+'"><i class="dot"></i>'+nv[0]+'</span>'
+         +'<b>'+esc(a.titulo)+'</b>'
+         +'<small>'+esc(a.leitura.slice(0,150))+(a.leitura.length>150?"…":"")+'</small>'
+         +'<span class="vpe">'+(quem[0]?esc(quem[0].nome):"")
+         +(a.valor?'<i>'+brlCurto(a.valor)+'</i>':'')+'</span></button>';
+     }).join("")
+    +'</div>';
+})();
 
 /* ---------- composição ---------- */
 function renderComposicao(){
