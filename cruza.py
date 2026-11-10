@@ -372,11 +372,116 @@ def main():
                      "aberta às vésperas de ganhar um contrato de porte.")
         x["leitura"] = base
 
+
+    # ================= OUTROS PADROES =================
+    # Cada um e uma regra escrita, deterministica e conferivel. Nenhum deles e
+    # acusacao: sao coincidencias entre bases publicas que merecem checagem.
+    alertas = []
+
+    # A. a mesma pessoa e socia de DUAS empresas pagas pelo mesmo gabinete
+    socios_de = defaultdict(lambda: defaultdict(list))   # pid -> (nome,cpf6) -> [cnpj]
+    for cnpj, e in emp.items():
+        for pid in (cota_de.get(cnpj) or {}):
+            for so in (e.get("socios") or []):
+                if nome_forte(so["nome"]):
+                    socios_de[pid][(chave(so["nome"]), so.get("cpf6") or "")].append(cnpj)
+    for pid, m in socios_de.items():
+        for (nome, _), lista in m.items():
+            if len(set(lista)) < 2:
+                continue
+            cn = sorted(set(lista))
+            total = sum((cota_de[c] or {}).get(pid, 0) for c in cn)
+            alertas.append({
+                "tipo": "socio_repetido", "id": pid, "cnpjs": cn, "valor": round(total),
+                "titulo": "Mesma pessoa é sócia de " + str(len(cn)) + " fornecedores do mesmo gabinete",
+                "leitura": f"{emp[cn[0]]['socios'][0]['nome'] if emp[cn[0]].get('socios') else nome} aparece no "
+                           f"quadro societário de {len(cn)} empresas que o gabinete de {por_id[pid]['nome']} "
+                           f"({por_id[pid]['partido']}/{por_id[pid]['uf']}) pagou com a cota: "
+                           + ", ".join(emp[c]["razao"] for c in cn) + f", somando {quanto(total)}. "
+                           "Contratar duas empresas do mesmo dono não é proibido, mas desfaz a aparência de "
+                           "concorrência entre fornecedores."})
+
+    # B. o mesmo socio abastecendo gabinetes de parlamentares diferentes
+    socio_gab = defaultdict(set)
+    for cnpj, e in emp.items():
+        pids = set(cota_de.get(cnpj) or {})
+        for so in (e.get("socios") or []):
+            if nome_forte(so["nome"]):
+                socio_gab[(chave(so["nome"]), so.get("cpf6") or "")] |= pids
+    for (nome, cpf6), pids in socio_gab.items():
+        if len(pids) < 6:
+            continue
+        alertas.append({
+            "tipo": "socio_multi", "ids": sorted(pids), "valor": 0,
+            "titulo": "Um mesmo sócio atende " + str(len(pids)) + " gabinetes",
+            "leitura": f"A mesma pessoa física aparece como sócia de empresas pagas pela cota de "
+                       f"{len(pids)} gabinetes diferentes. Pode ser um fornecedor nacional legítimo — "
+                       "gráfica, locadora, companhia aérea — e é por isso que o site mostra quais são, "
+                       "em vez de apontar o dedo."})
+
+    # C. mesma empresa paga pela campanha E pela cota do mesmo parlamentar
+    for cnpj in set(cota_de) & set(camp_de):
+        for pid in set(cota_de[cnpj]) & set(camp_de[cnpj]):
+            c, k = cota_de[cnpj][pid], camp_de[cnpj][pid]
+            alertas.append({
+                "tipo": "campanha_e_cota", "id": pid, "cnpjs": [cnpj], "valor": round(c + k),
+                "titulo": "A mesma empresa foi paga pela campanha e pela cota",
+                "leitura": f"A {emp.get(cnpj,{}).get('razao','empresa')} recebeu {quanto(k)} da campanha de "
+                           f"{por_id[pid]['nome']} e {quanto(c)} da cota do mandato dele"
+                           + (f', por "{cota_tipo.get(cnpj,{}).get(pid,"")}"' if cota_tipo.get(cnpj, {}).get(pid) else "")
+                           + ". Fornecedor de campanha que vira fornecedor de gabinete é comum e legal; o que "
+                             "o site mostra é que a relação comercial atravessou a eleição."})
+
+    # D. fornecedor que vive de um gabinete so
+    for cnpj, pagantes in cota_de.items():
+        if len(pagantes) != 1:
+            continue
+        pid, v = next(iter(pagantes.items()))
+        tot_gab = (por_id[pid].get("cota") or {}).get("total") or 0
+        if v < 80000 or not tot_gab:
+            continue
+        fatia = v / tot_gab
+        if fatia < 0.12:
+            continue
+        alertas.append({
+            "tipo": "exclusivo", "id": pid, "cnpjs": [cnpj], "valor": round(v),
+            "titulo": "Fornecedor exclusivo, com fatia grande da cota",
+            "leitura": f"A {emp.get(cnpj,{}).get('razao','empresa')} recebeu {quanto(v)} e, entre os 594 "
+                       f"gabinetes, só o de {por_id[pid]['nome']} a pagou — são {fatia*100:.0f}% de toda a "
+                       f"cota que esse gabinete gastou. Dependência de um cliente só não é irregularidade, "
+                       "mas é o padrão de quem existe para atender um contrato."})
+
+    # E. emenda para o municipio onde fica a empresa que o gabinete paga
+    for pid, reg in por_id.items():
+        locais = {(l["local"] or "").split(" - ")[0].strip().upper()
+                  for l in ((reg.get("emendas") or {}).get("locais") or [])}
+        if not locais:
+            continue
+        for cnpj, pagantes in cota_de.items():
+            if pid not in pagantes:
+                continue
+            e = emp.get(cnpj) or {}
+            mun = (e.get("municipio") or "").strip().upper()
+            if mun and mun in locais and pagantes[pid] >= 50000:
+                alertas.append({
+                    "tipo": "emenda_mesma_cidade", "id": pid, "cnpjs": [cnpj],
+                    "valor": round(pagantes[pid]),
+                    "titulo": "Emenda para a cidade de uma empresa que o gabinete paga",
+                    "leitura": f"{reg['nome']} destinou emenda para {e.get('municipio')}, e a "
+                               f"{e.get('razao','empresa')}, sediada nessa mesma cidade, recebeu "
+                               f"{quanto(pagantes[pid])} da cota dele. São dois dinheiros diferentes e a "
+                               "coincidência pode ser só geográfica — o parlamentar manda emenda para a "
+                               "base eleitoral dele, onde também contrata. Vale olhar se a empresa recebeu "
+                               "algo da emenda."})
+
+    alertas.sort(key=lambda a: -a.get("valor", 0))
+
     v_parl.sort(key=lambda x: -(x["cota"] + x["campanha"]))
     v_doador.sort(key=lambda x: -(x["cota"] + x["campanha"]))
     v_cadastro.sort(key=lambda x: -x["cota"])
 
     saida = {"gerado_em": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+             "alertas": alertas,
              "socio_parlamentar": v_parl,
              "socio_doador": v_doador,
              "cadastro": v_cadastro}
@@ -387,6 +492,9 @@ def main():
           f" (com CPF conferido: {sum(1 for x in v_parl if x['cpf_confere'])})")
     print(f"sócio que doou para quem pagou a empresa: {len(v_doador)}")
     print(f"empresa com cadastro que merece olhada: {len(v_cadastro)}")
+    from collections import Counter as _C
+    for t, n in _C(a["tipo"] for a in alertas).most_common():
+        print(f"  alerta {t}: {n}")
     print(f"json: {os.path.getsize('dados/vinculos.json')/1024:.0f} KB")
     for x in v_parl[:5]:
         print(f"  · {por_id[x['id']]['nome']} — {x['empresa'][:40]} "

@@ -135,6 +135,14 @@ tbody tr.alerta:hover td{background:var(--crit-veu-2)}
 .vtcab{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
 .vtcab b{font-size:13.5px;font-weight:600;overflow-wrap:anywhere}
 .vtpe{display:flex;gap:10px;justify-content:space-between;font-size:11.5px;color:var(--muted)}
+/* lista de padroes encontrados */
+.alertas{display:grid;gap:10px}
+.alerta-card{border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:var(--r);
+  background:var(--surface);padding:14px 16px;display:grid;gap:8px}
+.alerta-card h4{font-size:13.5px;font-weight:600;display:flex;gap:10px;justify-content:space-between;align-items:baseline}
+.alerta-card h4 span{font-family:var(--mono);font-size:12px;color:var(--warn);white-space:nowrap}
+.alerta-card p{font-size:13px;color:var(--ink-2);line-height:1.55;max-width:92ch}
+.alerta-card .meta2{gap:6px}
 .dupla{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;align-items:start}
 /* a leitura do achado, logo abaixo da linha a que ela se refere */
 tr.leitura td{padding-top:0;font-size:13px;color:var(--ink-2);line-height:1.55}
@@ -666,7 +674,7 @@ footer .wrap{padding-block:24px;font-size:12.5px;color:var(--muted);display:grid
       <header><div><h2>Filtrar tudo nesta página</h2>
         <small>Vale para as três tabelas abaixo</small></div></header>
       <div class="filtros">
-        <label>Parlamentar<span class="busca"><svg class="lupa" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><line x1="10.9" y1="10.9" x2="14.4" y2="14.4"/></svg><input type="search" id="vi-qp" placeholder="nome do parlamentar" autocomplete="off"></span></label>
+        <label>Parlamentar<span class="busca"><svg class="lupa" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><line x1="10.9" y1="10.9" x2="14.4" y2="14.4"/></svg><input type="search" id="vi-qp" placeholder="nome do parlamentar" autocomplete="off"></span><small class="hint" style="font-weight:400">Filtra os achados, não a lista de parlamentares: quem não tem vínculo aparece como "sem vínculo detectado".</small></label>
         <label>Partido<select id="vi-partido"><option value="">Todos</option></select></label>
         <label>UF<select id="vi-uf"><option value="">Todas</option></select></label>
         <label>Ordenar<select id="vi-ord">
@@ -694,6 +702,20 @@ footer .wrap{padding-block:24px;font-size:12.5px;color:var(--muted);display:grid
       <p class="achou" id="vi-doador-achou"></p>
       <div class="tablewrap"><table id="vi-doador"></table></div>
       <p class="hint">O dinheiro faz o caminho completo: a pessoa doa para a campanha, e a empresa dela recebe de volta — da própria campanha ou da cota do mandato.</p>
+    </div>
+
+    <div class="sec rule">
+      <header><div><h2>Outros padrões encontrados</h2>
+        <small id="al-sub"></small></div></header>
+      <div class="prosa" style="max-width:74ch">
+        <p>Cada padrão abaixo é uma <strong>regra escrita</strong>, que roda igual toda vez e pode ser conferida na fonte. Nenhum deles é irregularidade por si só — são coincidências entre bases públicas que merecem uma olhada.</p>
+      </div>
+      <div class="filtros">
+        <label>Padrão<select id="al-tipo"><option value="">Todos</option></select></label>
+        <label>Buscar<span class="busca"><svg class="lupa" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><line x1="10.9" y1="10.9" x2="14.4" y2="14.4"/></svg><input type="search" id="al-q" placeholder="empresa, CNPJ ou parlamentar" autocomplete="off"></span></label>
+      </div>
+      <p class="achou" id="al-achou"></p>
+      <div class="alertas" id="al-lista"></div>
     </div>
 
     <div class="sec rule">
@@ -3314,12 +3336,36 @@ function renderVinculos(){
   /* nenhum achado é o resultado esperado para quase todo mundo: 6 dos 594
      aparecem como sócios. Dizer "0 + 0 + 0" faz parecer defeito do filtro. */
   var somaF=L_parl.length+L_doador.length+L_cad.length;
-  el("vi-filtro-achou").textContent=!filtrando ? ""
-    : somaF ? nf(L_parl.length)+" sócio, "+nf(L_doador.length)+" doador e "+nf(L_cad.length)
-              +" cadastro correspondem ao filtro"
-            : "Nenhum vínculo para esse filtro — e isso é o normal: dos "+nf(PARL.length)
-              +" parlamentares, "+nf(VINC.socio_parlamentar.length)+" aparecem como sócios de empresa "
-              +"que recebeu, e "+nf(VINC.socio_doador.length)+" têm um doador sócio da contratada.";
+  if(!filtrando){ el("vi-filtro-achou").innerHTML=""; }
+  else if(somaF){
+    el("vi-filtro-achou").textContent=nf(L_parl.length)+" sócio, "+nf(L_doador.length)
+      +" doador e "+nf(L_cad.length)+" cadastro correspondem ao filtro";
+  } else {
+    /* esta busca filtra ACHADOS, não pessoas: quem não tem vínculo some da tela.
+       Em vez de sumir calado, a página diz que a pessoa existe, que o silêncio
+       é o resultado dela, e abre a ficha. */
+    var quem=PARL.filter(function(p){
+      return (!fpart||p.partido===fpart)&&(!fuf||p.uf===fuf)
+        &&semAcento(fqp).trim()&&casaBusca(fqp,p.nome+" "+(p.nome_civil||""));
+    });
+    if(quem.length===1){
+      var q=quem[0];
+      el("vi-filtro-achou").innerHTML='<b>'+esc(q.nome)+'</b> ('+esc(q.cargo)+', '+esc(q.partido)+'/'+esc(q.uf)
+        +') está na base e <b>não tem nenhum vínculo societário detectado</b> — que é o resultado de '
+        +nf(PARL.length-VINC.socio_parlamentar.length)+' dos '+nf(PARL.length)+' parlamentares. '
+        +'<button type="button" class="chamada" data-pid="'+esc(q.id)+'">abrir a ficha</button>';
+    } else if(quem.length>1){
+      el("vi-filtro-achou").textContent=nf(quem.length)+" parlamentares correspondem a essa busca, "
+        +"e nenhum deles tem vínculo detectado.";
+    } else if(semAcento(fqp).trim()){
+      el("vi-filtro-achou").textContent="Ninguém com esse nome entre os "+nf(PARL.length)
+        +" parlamentares em exercício. A busca aqui é por quem está no Congresso hoje.";
+    } else {
+      el("vi-filtro-achou").textContent="Nenhum vínculo para esse filtro — e isso é o normal: dos "
+        +nf(PARL.length)+" parlamentares, "+nf(VINC.socio_parlamentar.length)+" aparecem como sócios "
+        +"de empresa que recebeu, e "+nf(VINC.socio_doador.length)+" têm um doador sócio da contratada.";
+    }
+  }
 
   el("vi-parl").innerHTML=L_parl.length
     ?'<thead><tr><th>Parlamentar</th><th>Empresa</th><th>Papel na empresa</th><th>Conferência</th>'
@@ -3339,6 +3385,8 @@ function renderVinculos(){
         +linhaLeitura(x,6,"parl",i);
     }).join("")+'</tbody>'
     :'<tbody><tr><td class="empty">'+(filtrando?"Nenhum caso corresponde ao filtro.":"Nenhum caso encontrado com os critérios acima.")+'</td></tr></tbody>';
+
+  renderAlertas(serve,filtrando);
 
   var qd=el("vi-qd").value;
   var ld=L_doador.filter(function(x){
@@ -3395,6 +3443,59 @@ el("vi-qp").addEventListener("input",renderVinculos);
 ["vi-partido","vi-uf","vi-ord"].forEach(function(id){
   el(id).addEventListener("change",renderVinculos);
 });
+
+/* ---------- padrões encontrados pelas regras ---------- */
+var ALERTAS=(DADOS.vinculos||{}).alertas||[];
+var NOMES_ALERTA={
+  socio_repetido:"Mesmo sócio em dois fornecedores do gabinete",
+  socio_multi:"Mesmo sócio atendendo muitos gabinetes",
+  campanha_e_cota:"Empresa paga pela campanha e pela cota",
+  exclusivo:"Fornecedor exclusivo de um gabinete",
+  emenda_mesma_cidade:"Emenda para a cidade de um fornecedor"
+};
+function idsDoAlerta(a){ return a.ids||(a.id?[a.id]:[]); }
+function renderAlertas(serve,filtrando){
+  if(!el("al-tipo").dataset.pronto){
+    var ts={}; ALERTAS.forEach(function(a){ts[a.tipo]=(ts[a.tipo]||0)+1;});
+    el("al-tipo").innerHTML='<option value="">Todos os padrões ('+nf(ALERTAS.length)+')</option>'
+      +Object.keys(ts).sort(function(x,y){return ts[y]-ts[x];}).map(function(t){
+        return '<option value="'+t+'">'+esc(NOMES_ALERTA[t]||t)+' ('+nf(ts[t])+')</option>';
+      }).join("");
+    el("al-tipo").dataset.pronto="1";
+  }
+  var tipo=el("al-tipo").value, q=el("al-q").value;
+  var lista=ALERTAS.filter(function(a){
+    if(tipo&&a.tipo!==tipo) return false;
+    if(!idsDoAlerta(a).some(function(i){return serve(parlPorId(i));})) return false;
+    var nomes=idsDoAlerta(a).map(function(i){var p=parlPorId(i);return p?p.nome+" "+p.partido+" "+p.uf:"";}).join(" ");
+    var emps=(a.cnpjs||[]).map(function(c){var e=empresaDe(c);return (e?e.r:"")+" "+c;}).join(" ");
+    return casaBusca(q,a.titulo+" "+nomes+" "+emps);
+  });
+  el("al-sub").textContent=nf(ALERTAS.length)+" coincidências em "+nf(Object.keys(NOMES_ALERTA).length)+" regras";
+  el("al-achou").textContent=(tipo||semAcento(q).trim()||filtrando)
+    ? nf(lista.length)+(lista.length===1?" padrão encontrado":" padrões encontrados") : "";
+  el("al-lista").innerHTML=lista.length
+    ? lista.slice(0,40).map(function(a){
+        var quem=idsDoAlerta(a).map(parlPorId).filter(Boolean);
+        return '<div class="alerta-card"><h4>'+esc(a.titulo)
+          +(a.valor?'<span>'+brlCurto(a.valor)+'</span>':'')+'</h4>'
+          +'<p>'+esc(a.leitura)+'</p>'
+          +'<div class="meta2">'
+          +quem.slice(0,6).map(function(p){
+             return '<button type="button" class="chamada" data-pid="'+esc(p.id)+'">'+esc(p.nome)+'</button>';
+           }).join("")
+          +(a.cnpjs||[]).slice(0,4).map(function(c){
+             var e=empresaDe(c);
+             return '<button type="button" class="chamada" data-cnpj="'+esc(c)+'">'+esc(e?e.r.slice(0,34):cnpjFmt(c))+'</button>';
+           }).join("")
+          +(quem.length>6?'<span class="hint">+'+nf(quem.length-6)+' parlamentares</span>':'')
+          +'</div></div>';
+      }).join("")
+      +(lista.length>40?'<p class="hint">Mostrando 40 de '+nf(lista.length)+'. Use o filtro de padrão ou a busca para estreitar.</p>':'')
+    : '<p class="empty card">Nenhum padrão corresponde a esse filtro.</p>';
+}
+el("al-tipo").addEventListener("change",renderVinculos);
+el("al-q").addEventListener("input",renderVinculos);
 
 /* ---------- composição ---------- */
 function renderComposicao(){
