@@ -87,6 +87,7 @@ def despesas_deputado(reg):
     meses = defaultdict(float)
     forn = defaultdict(float)
     forn_ano = defaultdict(lambda: defaultdict(float))
+    forn_tipo = defaultdict(lambda: defaultdict(float))   # a que a nota se referia
     nomes = {}
     tipos = defaultdict(float)
     tipos_ano = defaultdict(lambda: defaultdict(float))
@@ -114,6 +115,8 @@ def despesas_deputado(reg):
             nomes.setdefault(cnpj, x.get("nomeFornecedor") or "")
             if ano:
                 forn_ano[cnpj][ano] += v
+            if x.get("tipoDespesa"):
+                forn_tipo[cnpj][x["tipoDespesa"]] += v
         tp = x.get("tipoDespesa") or ""
         if tp:
             tipos[tp] += v
@@ -128,8 +131,12 @@ def despesas_deputado(reg):
         "ano0": ANO0,
         "serie": serie,
         "por_ano": {str(a): round(v) for a, v in sorted(por_ano.items())},
+        # o tipo de despesa responde "pagou por que?" — sem isso o site mostra que
+        # houve pagamento mas nao a que ele se referia
         "fornecedores": [{"cnpj": c, "nome": nomes.get(c, ""), "valor": round(v),
-                          "anos": {str(a): round(x) for a, x in sorted(forn_ano[c].items()) if round(x)}}
+                          "anos": {str(a): round(x) for a, x in sorted(forn_ano[c].items()) if round(x)},
+                          "tipos": [{"tipo": t, "valor": round(x)} for t, x in
+                                    sorted(forn_tipo[c].items(), key=lambda kv: -kv[1])[:3] if round(x)]}
                          for c, v in top],
         "n_fornecedores": len(forn),
         "tipos": [{"tipo": t, "valor": round(v),

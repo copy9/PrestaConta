@@ -129,17 +129,23 @@ def main():
 
     # indice: doadores pessoa fisica, por (nome, cpf6) -> para quem doou
     doador = defaultdict(lambda: defaultdict(float))
+    doa_fonte = {}                    # (nome, cpf6, pid) -> origem declarada ao TSE
     for p in regs:
         for ano, b in (p.get("campanha") or {}).items():
             for d in b["doadores"]:
                 if d["tipo"] != "PF" or not nome_forte(d["nome"]):
                     continue
                 doador[(chave(d["nome"]), miolo(d["doc"]))][p["id"]] += d["valor"]
+                doa_fonte[(chave(d["nome"]), miolo(d["doc"]), p["id"])] = d.get("fonte") or ""
 
-    # quem pagou o que para cada CNPJ
+    # quem pagou o que para cada CNPJ, e A QUE o pagamento se referia
     cota_de = defaultdict(dict)       # cnpj -> pid -> valor
     primeiro_ano = defaultdict(dict)  # cnpj -> pid -> primeiro ano com nota
+    cota_tipo = defaultdict(dict)     # cnpj -> pid -> rubrica da nota
+    cota_anos = defaultdict(dict)     # cnpj -> pid -> anos com nota
     camp_de = defaultdict(dict)
+    camp_oque = defaultdict(dict)     # cnpj -> pid -> objeto do contrato
+    camp_ano = defaultdict(dict)
     for p in regs:
         if p.get("cota"):
             for f in p["cota"]["fornecedores"]:
@@ -148,11 +154,19 @@ def main():
                 anos = sorted((f.get("anos") or {}).keys())
                 if anos:
                     primeiro_ano[c][p["id"]] = anos[0]
+                    cota_anos[c][p["id"]] = anos
+                tp = (f.get("tipos") or [])
+                if tp:
+                    cota_tipo[c][p["id"]] = tp[0]["tipo"]
         for ano, b in (p.get("campanha") or {}).items():
             for f in b["fornecedores"]:
                 if f["tipo"] == "PJ" and f["doc"]:
                     c = so_digitos(f["doc"])
                     camp_de[c][p["id"]] = camp_de[c].get(p["id"], 0) + f["valor"]
+                    camp_ano[c][p["id"]] = ano
+                    ds = (f.get("desp") or [])
+                    if ds:
+                        camp_oque[c][p["id"]] = ds[0]["o_que"]
 
     v_parl, v_doador, v_cadastro = [], [], []
 
@@ -184,6 +198,10 @@ def main():
                     "id": pid, "socio": s["nome"], "qual": s["qual"], "desde": s["desde"],
                     "cpf_confere": tem_cpf, "cpf_disponivel": bool(cpf6.get(pid)),
                     "cota": cota_p, "campanha": camp_p, "cota_outros": outros,
+                    "cota_por": cota_tipo.get(cnpj, {}).get(pid, ""),
+                    "cota_anos": cota_anos.get(cnpj, {}).get(pid, []),
+                    "camp_por": camp_oque.get(cnpj, {}).get(pid, ""),
+                    "camp_ano": camp_ano.get(cnpj, {}).get(pid, ""),
                 })
 
             # 2. socio é doador de campanha de quem pagou a empresa
@@ -202,6 +220,11 @@ def main():
                         "doou": round(valor),
                         "cota": recebeu_cota.get(pid, 0),
                         "campanha": recebeu_camp.get(pid, 0),
+                        "doou_como": doa_fonte.get((k, m, pid), ""),
+                        "cota_por": cota_tipo.get(cnpj, {}).get(pid, ""),
+                        "cota_anos": cota_anos.get(cnpj, {}).get(pid, []),
+                        "camp_por": camp_oque.get(cnpj, {}).get(pid, ""),
+                        "camp_ano": camp_ano.get(cnpj, {}).get(pid, ""),
                     })
 
         # 3. o cadastro da empresa por si so
@@ -242,6 +265,40 @@ def main():
             return f"R$ {round(v/1000)} mil"
         return brl(v)
 
+    def anos_txt(l):
+        l = [str(a) for a in (l or [])]
+        if not l:
+            return ""
+        return l[0] if len(l) == 1 else (", ".join(l[:-1]) + " e " + l[-1])
+
+    def como_saiu(x):
+        """A primeira perna: como o dinheiro saiu de quem doou."""
+        f = (x.get("doou_como") or "").strip().lower()
+        if "pessoa f" in f:
+            return "doação de pessoa física declarada ao TSE"
+        if "próprio" in f or "proprio" in f:
+            return "recurso próprio declarado ao TSE"
+        if "partido" in f or "fundo" in f:
+            return "repasse do partido declarado ao TSE"
+        return "doação declarada ao TSE" + (f" ({x['doou_como']})" if x.get("doou_como") else "")
+
+    def como_voltou(x):
+        """A terceira perna: por que a empresa recebeu, e de que caixa."""
+        t = []
+        if x.get("campanha"):
+            o = x.get("camp_por")
+            t.append("contrato de campanha" + (f', na rubrica "{o}"' if o else "")
+                     + (f", na eleição de {x['camp_ano']}" if x.get("camp_ano") else "")
+                     + f", de {quanto(x['campanha'])}")
+        if x.get("cota"):
+            o = x.get("cota_por")
+            a = anos_txt(x.get("cota_anos"))
+            t.append("reembolso pela cota parlamentar"
+                     + (f', na rubrica "{o}"' if o else "")
+                     + (f", em {a}" if a else "")
+                     + f", de {quanto(x['cota'])}")
+        return t
+
     for x in v_parl:
         p = por_id[x["id"]]
         quem_e = f"{p['nome']} ({p['partido']}/{p['uf']})"
@@ -252,15 +309,14 @@ def main():
         partes = [f"{quem_e} aparece como {x['qual'].lower() or 'sócio'} da "
                   f"{x['empresa']} no quadro societário da Receita. {firmeza}"]
         if x["campanha"] and x["cota"]:
-            partes.append(f"A campanha dele pagou {quanto(x['campanha'])} a essa empresa, "
-                          f"e o gabinete pagou mais {quanto(x['cota'])} com a cota parlamentar.")
+            partes.append("A empresa recebeu " + "; e ".join(como_voltou(x)) + ".")
             partes.append("Quem decide o gasto e quem é dono de quem recebe são a mesma "
                           "pessoa, nos dois casos. É declarado e não é proibido. O que o "
                           "dado mostra é a coincidência das duas pontas; quanto disso virou "
                           "ganho pessoal depende do serviço prestado, do custo e da margem "
                           "da empresa, e isso nenhuma destas bases informa.")
         elif x["campanha"]:
-            partes.append(f"A campanha dele pagou {quanto(x['campanha'])} a essa mesma empresa.")
+            partes.append("A empresa recebeu " + "; e ".join(como_voltou(x)) + ".")
             partes.append("A lei permite e a prestação de contas declara. O que este site "
                           "mostra é que quem contratou e quem é dono da contratada são a "
                           "mesma pessoa — não que esse dinheiro tenha virado patrimônio "
@@ -268,8 +324,8 @@ def main():
                           "sócio, e o que sobra depois do serviço e dos custos não está "
                           "em nenhuma base pública.")
         elif x["cota"]:
-            partes.append(f"O gabinete dele pagou {quanto(x['cota'])} a essa empresa com a "
-                          f"cota parlamentar, que é dinheiro público.")
+            partes.append("A empresa recebeu " + "; e ".join(como_voltou(x))
+                          + " — cota parlamentar é dinheiro público.")
             partes.append("Gabinete contratando empresa do próprio titular é o caso mais "
                           "sensível desta página: cabe checar se houve declaração de "
                           "impedimento e qual serviço foi prestado.")
@@ -284,24 +340,21 @@ def main():
 
     for x in v_doador:
         p = por_id[x["id"]]
+        pernas = como_voltou(x)
         total = x["cota"] + x["campanha"]
-        de_onde = []
-        if x["campanha"]:
-            de_onde.append(f"{quanto(x['campanha'])} da própria campanha")
-        if x["cota"]:
-            de_onde.append(f"{quanto(x['cota'])} da cota parlamentar, que é dinheiro público")
         volta = round(total / x["doou"], 1) if x["doou"] else 0
         x["leitura"] = (
-            f"{x['socio'].title()} doou {quanto(x['doou'])} para a campanha de {p['nome']} "
-            f"({p['partido']}/{p['uf']}). Essa mesma pessoa é {x['qual'].lower() or 'sócia'} "
-            f"da {x['empresa']}, que recebeu {' e '.join(de_onde)} do mesmo parlamentar. "
-            + (f"Voltou cerca de {str(volta).replace('.', ',')}× o valor doado. "
+            f"São três passos, todos declarados. "
+            f"(1) {x['socio'].title()} entregou {quanto(x['doou'])} à campanha de {p['nome']} "
+            f"({p['partido']}/{p['uf']}) — {como_saiu(x)}. "
+            f"(2) Essa mesma pessoa é {x['qual'].lower() or 'sócia'} da {x['empresa']}. "
+            f"(3) A empresa recebeu " + "; e ".join(pernas) + ". "
+            + (f"Voltou cerca de {str(volta).replace('.', ',')}× o que foi doado. "
                if volta >= 1 else "")
-            + "Doação e contratação são atos legais e separados; o que chama atenção é o "
-              "circuito fechado — o dinheiro sai de quem doou e volta para uma empresa dele. "
-              "Confira o serviço prestado antes de concluir qualquer coisa."
+            + "Cada passo é legal e os três são declarados em bases diferentes; o que o site faz é "
+              "mostrar que eles fecham um circuito. Antes de concluir qualquer coisa, confira se o "
+              "serviço descrito foi mesmo prestado e por que preço."
         )
-
     for x in v_cadastro:
         nomes = [por_id[i]["nome"] for i in x["quem"] if i in por_id][:3]
         sit = (x["situacao"] or "").upper()

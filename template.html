@@ -383,6 +383,13 @@ svg.chart{width:100%;height:auto;display:block}
 .abas2 button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--warn);font-weight:600}
 .perchip{font-family:var(--mono);font-size:10.5px;color:var(--warn);background:var(--warn-bg);
   border-radius:99px;padding:2px 8px;white-space:nowrap}
+/* seletor de período, no alto e valendo para o site inteiro */
+.perodo{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);white-space:nowrap}
+.perodo select{max-width:160px}
+/* o que cada fonte consegue honrar do período escolhido */
+.granul{font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:flex-start;
+  border-left:2px solid var(--warn);padding:7px 0 7px 11px;margin-bottom:4px;line-height:1.5}
+.granul b{color:var(--ink-2);font-weight:600}
 
 footer{border-top:1px solid var(--line);margin-top:10px}
 footer .wrap{padding-block:24px;font-size:12.5px;color:var(--muted);display:grid;gap:6px}
@@ -394,6 +401,9 @@ footer .wrap{padding-block:24px;font-size:12.5px;color:var(--muted);display:grid
       <button type="button" class="brand" data-go="inicio"><span class="mark"></span><b>PrestaConta</b></button>
       <form id="searchform" role="search">
         <input type="search" id="q" name="q" placeholder="Buscar parlamentar, partido ou UF" aria-label="Buscar parlamentar, partido ou UF" autocomplete="off">
+        <label class="perodo" title="Vale para todas as páginas">Período
+          <select id="g-periodo" aria-label="Período mostrado em todo o site"></select>
+        </label>
         <button type="button" class="ghost" id="themebtn">Tema</button>
       </form>
     </div>
@@ -495,6 +505,7 @@ footer .wrap{padding-block:24px;font-size:12.5px;color:var(--muted);display:grid
     <div id="pl-ficha-wrap" hidden>
       <button type="button" class="voltar" data-back="parlamentares">&larr; Todos os parlamentares</button>
       <div class="card ficha" id="pl-ficha"></div>
+      <div id="pl-resumo"></div>
       <div id="pl-patr"></div>
       <div id="pl-vinculos"></div>
       <div id="pl-campanha"></div>
@@ -511,6 +522,7 @@ footer .wrap{padding-block:24px;font-size:12.5px;color:var(--muted);display:grid
   <!-- ============ PATRIMÔNIO ============ -->
   <section class="view" id="view-patrimonio" hidden>
     <div class="statstrip" id="pt-stats"></div>
+    <div id="pt-gran"></div>
     <div class="card chartcard">
       <h3>Patrimônio declarado do Congresso, eleição a eleição</h3>
       <p class="note" id="pt-note"></p>
@@ -537,6 +549,7 @@ footer .wrap{padding-block:24px;font-size:12.5px;color:var(--muted);display:grid
   <!-- ============ CAMPANHA ============ -->
   <section class="view" id="view-campanha" hidden>
     <div class="statstrip" id="cp-stats"></div>
+    <div id="cp-gran"></div>
     <div class="sec">
       <header><div><h2>De onde veio o dinheiro</h2><small id="cp-fonte-sub"></small></div></header>
       <div class="tablewrap"><table id="cp-fontes"></table></div>
@@ -581,6 +594,7 @@ footer .wrap{padding-block:24px;font-size:12.5px;color:var(--muted);display:grid
   <!-- ============ VOTAÇÕES ============ -->
   <section class="view" id="view-votacoes" hidden>
     <div class="statstrip" id="vt-stats"></div>
+    <div id="vt-gran"></div>
     <div class="sec">
       <header><div><h2>Presença e fidelidade</h2><small id="vt-rank-sub"></small></div></header>
       <div class="prosa" style="max-width:72ch">
@@ -610,6 +624,7 @@ footer .wrap{padding-block:24px;font-size:12.5px;color:var(--muted);display:grid
   <!-- ============ EMENDAS ============ -->
   <section class="view" id="view-emendas" hidden>
     <div class="statstrip" id="em-stats"></div>
+    <div id="em-gran"></div>
     <div class="sec">
       <header><div><h2>Quem mandou mais dinheiro</h2><small id="em-rank-sub"></small></div></header>
       <div class="prosa" style="max-width:72ch">
@@ -701,6 +716,7 @@ footer .wrap{padding-block:24px;font-size:12.5px;color:var(--muted);display:grid
   <!-- ============ COTA ============ -->
   <section class="view" id="view-cota" hidden>
     <div class="statstrip" id="cota-stats"></div>
+    <div id="cota-gran"></div>
     <div class="card chartcard">
       <h3>Gasto mensal de toda a Câmara</h3>
       <p class="note" id="cota-note"></p>
@@ -887,6 +903,29 @@ function foto(p,cls){
     +' style="--sp:url(sp'+p.sp[0]+'.jpg);--c:'+p.sp[1]+';--rw:'+p.sp[2]+'"></span>';
 }
 var SPR=DADOS.sprite||{cel:112,cols:12,folhas:6};
+
+/* ---------- um período só, valendo para o site inteiro ----------
+   As fontes não têm a mesma granularidade e fingir que têm seria mentira:
+   a cota vem nota a nota (dá mês), emenda vem por ano, e patrimônio e campanha
+   só existem de eleição em eleição. O seletor é um; cada página diz o que
+   conseguiu honrar dele. */
+var PER="";                       /* "" = tudo desde ANO0; senão "2024" etc. */
+function perAnos(){
+  var a=[];
+  for(var y=ANO0;y<=(DADOS.emendas_anos?DADOS.emendas_anos[DADOS.emendas_anos.length-1]:ANO0+3);y++) a.push(String(y));
+  return a;
+}
+function perRotulo(){ return PER ? "em "+PER : "de "+ANO0+" até hoje"; }
+function eleicaoDoPeriodo(anos){
+  /* eleição que vale para o período escolhido: a última que não passou dele */
+  var l=(anos||[]).map(String).sort();
+  if(!PER) return l[l.length-1];
+  var cab=l.filter(function(a){return a<=PER;});
+  return cab.length?cab[cab.length-1]:l[0];
+}
+function avisoGranul(texto){
+  return '<p class="granul"><b>Período: '+esc(PER||"tudo desde "+ANO0)+'.</b> '+texto+'</p>';
+}
 function gasto(p){return p.cota?p.cota.total:0;}
 
 /* ---------- agregados sobre os registros reais ---------- */
@@ -1228,12 +1267,54 @@ function renderFicha(){
     try{ navigator.clipboard.writeText(alvo.textContent).then(function(){bt.textContent="copiado";},selecionar); }
     catch(e){ selecionar(); }
   });
+  renderResumoDinheiro(p);
   renderPatrBloco(p);
   renderVinculoBloco(p);
   renderCampanhaBloco(p);
   renderEmendaBloco(p);
   renderVotoBloco(p);
   renderCotaPessoal(p);
+}
+
+/* --- ficha: o dinheiro que passou por esta pessoa, no período escolhido ---
+   Isto NAO e renda: e dinheiro publico e de campanha que passou pelo mandato.
+   Salario de parlamentar nao esta em nenhuma das bases usadas aqui, e somar
+   coisas de naturezas diferentes num numero so seria enganoso — por isso cada
+   uma aparece na sua linha, com o que a fonte consegue dizer do periodo. */
+function renderResumoDinheiro(p){
+  var alvo=el("pl-resumo");
+  var cota=cotaNoPeriodo(p);
+  var em=p.emendas?emValor(p,PER,"pago"):0;
+  var emE=p.emendas?emValor(p,PER,"emp"):0;
+  var anoC=eleicaoDoPeriodo(ANOS_CAMP), camp=campDe(p,anoC);
+  var anoP=eleicaoDoPeriodo(ANOS_PAT), serie=patr(p)||[];
+  var pat=serie.filter(function(x){return String(x.ano)===String(anoP);})[0]||serie[serie.length-1];
+  var linhas=[
+    ["Cota parlamentar","verba de gabinete, reembolso de nota fiscal",cota,
+     PER?"em "+PER:"de "+ANO0+" até hoje", cota||p.cota?null:"a cota do Senado não está conectada"],
+    ["Emendas pagas","dinheiro do orçamento que ele destinou",em,
+     PER?"em "+PER:"de "+(ANOS_EMENDA[0]||"")+" a "+(ANOS_EMENDA[ANOS_EMENDA.length-1]||""),
+     emE&&em<emE?"de "+brl(emE)+" empenhados":null],
+    ["Campanha","o que arrecadou para se eleger",camp?camp.total:0,
+     camp?"eleição de "+anoC:"sem prestação de contas",null],
+    ["Patrimônio declarado","bens que ele declarou ao TSE",pat?pat.valor:0,
+     pat?"eleição de "+pat.ano:"sem declaração",
+     pat&&pat.fin?"inclui "+brl(pat.fin)+" em bem financiado":null]
+  ];
+  alvo.innerHTML='<div class="sec" style="margin-bottom:18px">'
+   +'<header><div><h2>Os valores desta pessoa</h2>'
+   +'<small>Cada linha no período que a sua fonte consegue informar</small></div></header>'
+   +'<div class="tablewrap"><table><thead><tr><th>O quê</th><th>O que é</th>'
+   +'<th class="r">Valor</th><th>Período</th></tr></thead><tbody>'
+   +linhas.map(function(l){
+      return '<tr><td><b>'+esc(l[0])+'</b></td><td class="hint">'+esc(l[1])+'</td>'
+        +'<td class="r">'+(l[2]?brl(l[2]):"—")+'</td>'
+        +'<td class="hint">'+esc(l[3])+(l[4]?'<br>'+esc(l[4]):'')+'</td></tr>';
+   }).join("")+'</tbody></table></div>'
+   +'<p class="hint"><b>Nada aqui é a renda dele.</b> Salário e subsídio de parlamentar não estão em nenhuma '
+   +'das bases usadas neste site. Estas quatro linhas são de naturezas diferentes — verba de gabinete, '
+   +'orçamento destinado, dinheiro de campanha e bens declarados — e somá-las num número só daria um total '
+   +'que não significa nada.</p></div>';
 }
 
 /* --- ficha: vínculos societários encontrados para esta pessoa --- */
@@ -1472,23 +1553,38 @@ function linhaMensal(id,serie,cor){
 }
 
 /* ---------- aba cota ---------- */
+function cotaNoPeriodo(p){
+  if(!p||!p.cota) return 0;
+  return PER ? ((p.cota.por_ano||{})[PER]||0) : p.cota.total;
+}
+function fornNoPeriodo(f){
+  if(!f) return 0;
+  return PER ? ((f.anos||{})[PER]||0) : f.valor;
+}
 function renderCota(){
-  var maiorForn=FORN[0];
+  /* a cota e a unica base que vem nota a nota, entao ela honra o periodo inteiro */
+  var fornP=FORN.map(function(f){return {f:f,v:fornNoPeriodo(f)};})
+    .filter(function(x){return x.v>0;}).sort(function(a,b){return b.v-a.v;});
+  var gastoP=COM_COTA.reduce(function(t,p){return t+cotaNoPeriodo(p);},0);
+  var comGasto=COM_COTA.filter(function(p){return cotaNoPeriodo(p)>0;});
   el("cota-stats").innerHTML=
-    '<div><b>'+brlCurto(GASTO_TOTAL)+'</b><span>gastos desde '+ANO0+'</span></div>'
-   +'<div><b class="num">'+nf(NDOCS)+'</b><span>notas apresentadas</span></div>'
-   +'<div><b class="num">'+nf(COM_COTA.length)+'</b><span>gabinetes com gasto</span></div>'
-   +'<div><b class="num">'+nf(FORN.length)+'</b><span>empresas fornecedoras</span></div>'
-   +'<div><b>'+brlCurto(maiorForn.valor)+'</b><span>para a maior delas</span></div>';
+    '<div><b>'+brlCurto(gastoP)+'</b><span>gastos '+esc(perRotulo())+'</span></div>'
+   +'<div><b class="num">'+nf(PER?comGasto.length:NDOCS)+'</b><span>'+(PER?"gabinetes com gasto no ano":"notas apresentadas")+'</span></div>'
+   +'<div><b class="num">'+nf(PER?comGasto.length:COM_COTA.length)+'</b><span>gabinetes com gasto</span></div>'
+   +'<div><b class="num">'+nf(fornP.length)+'</b><span>empresas fornecedoras</span></div>'
+   +'<div><b>'+brlCurto(fornP.length?fornP[0].v:0)+'</b><span>para a maior delas</span></div>';
   var ult=SERIE_GERAL.length-1;
-  el("cota-note").textContent="Soma de todos os gabinetes da Câmara, mês a mês. O pico foi "
+  el("cota-gran").innerHTML=avisoGranul(PER
+    ? "A cota vem nota a nota, com mês e ano, então esta página inteira mostra só "+PER+"."
+    : "A cota vem nota a nota. Escolha um ano no alto da página para ver só ele.");
+  el("cota-note").textContent="Soma de todos os gabinetes da Câmara, mês a mês, no mandato inteiro. O pico foi "
     +brlCurto(Math.max.apply(null,SERIE_GERAL))+" em "+rotuloMes(SERIE_GERAL.indexOf(Math.max.apply(null,SERIE_GERAL)))
     +". O último mês publicado ("+rotuloMes(ult)+") costuma aparecer incompleto, porque as notas chegam com atraso.";
   linhaMensal("cota-chart",SERIE_GERAL,"var(--data)");
 
   /* busca nas duas tabelas: a posição mostrada é a do ranking inteiro */
   var qf=el("cota-qf").value;
-  var emp=FORN.map(function(f,i){return {f:f,pos:i+1};})
+  var emp=fornP.map(function(x,i){return {f:x.f,v:x.v,pos:i+1};})
     .filter(function(x){return casaBusca(qf,(x.f.nome||"")+" "+x.f.cnpj);});
   el("cota-forn-achou").textContent=semAcento(qf).trim()
     ? nf(emp.length)+(emp.length===1?" empresa encontrada":" empresas encontradas")
@@ -1499,14 +1595,14 @@ function renderCota(){
     +emp.slice(0,25).map(function(x){
       var f=x.f;
       return '<tr><td class="r">'+x.pos+'</td><td>'+esc(f.nome||"—")+'</td>'
-        +'<td class="mono">'+cnpjFmt(f.cnpj)+'</td><td class="r">'+brl(f.valor)+'</td>'
+        +'<td class="mono">'+cnpjFmt(f.cnpj)+'</td><td class="r">'+brl(x.v)+'</td>'
         +'<td class="r">'+nf(f.gabinetes)+'</td></tr>';
     }).join("")+'</tbody>'
     :'<tbody><tr><td class="empty">Nenhuma empresa corresponde a essa busca.</td></tr></tbody>';
 
   var q=el("cota-q").value;
-  var todos=COM_COTA.slice().sort(function(a,b){return b.cota.total-a.cota.total;});
-  var maior=todos[0].cota.total;
+  var todos=comGasto.slice().sort(function(a,b){return cotaNoPeriodo(b)-cotaNoPeriodo(a);});
+  var maior=todos.length?cotaNoPeriodo(todos[0]):1;
   var rank=todos.map(function(p,i){return {p:p,pos:i+1};})
     .filter(function(x){return casaBusca(q,x.p.nome+" "+(x.p.nome_civil||"")+" "+x.p.partido+" "+x.p.uf);});
   el("cota-rank-achou").textContent=semAcento(q).trim()
@@ -1524,8 +1620,8 @@ function renderCota(){
         +'<td><span style="display:flex;align-items:center;gap:10px">'+foto(p,"sm")
           +'<button type="button" class="linkbtn" data-pid="'+esc(p.id)+'">'+esc(p.nome)+'</button></span></td>'
         +'<td class="mono">'+esc(p.partido)+'/'+esc(p.uf)+'</td>'
-        +'<td class="r">'+brl(p.cota.total)+'</td>'
-        +'<td><span class="barra" style="display:block"><i style="width:'+(p.cota.total/maior*100).toFixed(1)+'%"></i></span></td>'
+        +'<td class="r">'+brl(cotaNoPeriodo(p))+'</td>'
+        +'<td><span class="barra" style="display:block"><i style="width:'+(cotaNoPeriodo(p)/(maior||1)*100).toFixed(1)+'%"></i></span></td>'
         +'<td class="r">'+nf(p.cota.docs)+'</td></tr>';
     }).join("")+'</tbody>';
 }
@@ -1619,6 +1715,9 @@ function renderPatrBloco(p){
 }
 
 function renderPatrimonio(){
+  el("pt-gran").innerHTML=avisoGranul("Patrimônio só existe de eleição em eleição — o TSE o coleta quando a pessoa se candidata, "
+    +"não mês a mês. As eleições disponíveis são "+ANOS_PAT.join(", ")
+    +(PER?", e a que vale para "+PER+" é "+eleicaoDoPeriodo(ANOS_PAT)+".":"."));
   var somaPorAno=ANOS_PAT.map(function(a){
     var v=0,n=0;
     COM_PATR.forEach(function(p){
@@ -2582,7 +2681,10 @@ function linhaParl(p,extra){
     +(extra||"")+'</span>';
 }
 function renderCampanha(){
-  var ult=ANOS_CAMP[ANOS_CAMP.length-1];
+  var ult=eleicaoDoPeriodo(ANOS_CAMP);
+  el("cp-gran").innerHTML=avisoGranul("Prestação de contas existe de eleição em eleição: "+ANOS_CAMP.join(" e ")
+    +(PER?". Para "+PER+", a eleição que vale é a de "+ult+".":". Mostrando a de "+ult+"."));
+  el("cp-ano").value=ult;
   var soma=0, publico=0, privado=0, proprio=0, ndoa=0;
   COM_CAMP.forEach(function(p){
     var c=campDe(p,ult); if(!c) return;
@@ -2697,6 +2799,9 @@ function renderVotacoes(){
   if(!VOT){ el("vt-stats").innerHTML='<div><b>—</b><span>sem dados de votação</span></div>'; return; }
   var presMedia=COM_VOTO.reduce(function(s,p){return s+presenca(p);},0)/(COM_VOTO.length||1);
   var fidMedia=COM_VOTO.reduce(function(s,p){return s+fidelidade(p);},0)/(COM_VOTO.length||1);
+  el("vt-gran").innerHTML=avisoGranul("Presença e fidelidade são do mandato inteiro: elas só fazem sentido sobre "
+    +"todas as votações da janela de exercício de cada um. O período filtra a lista de votações abaixo"
+    +(PER?", mostrando as de "+PER+".":"."));
   el("vt-stats").innerHTML=
     '<div><b class="num">'+nf(VOT.total_nominais)+'</b><span>votações nominais desde '+VOT.periodo[0]+'</span></div>'
    +'<div><b class="num">'+nf(VOT.total_plenario)+'</b><span>votações do plenário no total</span></div>'
@@ -2758,8 +2863,13 @@ function renderVotacoes(){
     }).join("")+'</tbody>'
     :'<tbody><tr><td class="empty">Nenhum deputado corresponde a essa busca.</td></tr></tbody>';
 
-  el("vt-recentes-sub").textContent="As "+nf(VOT.recentes.length)+" mais recentes, voto a voto";
-  el("vt-recentes").innerHTML=VOT.recentes.map(function(v,i){
+  var recs=VOT.recentes.map(function(v,i){return {v:v,i:i};})
+    .filter(function(x){return !PER||String(x.v.data||"").slice(0,4)===PER;});
+  el("vt-recentes-sub").textContent=PER
+    ? nf(recs.length)+" das "+nf(VOT.recentes.length)+" guardadas são de "+PER
+    : "As "+nf(VOT.recentes.length)+" mais recentes, voto a voto";
+  el("vt-recentes").innerHTML=recs.length?recs.map(function(r){
+    var v=r.v, i=r.i;
     var t=v.sim+v.nao+v.outros||1;
     return '<button type="button" class="vtitem" data-votacao="'+i+'">'
       +'<span class="vtcab"><b>'+esc(v.descricao||"Votação")+'</b>'
@@ -2770,7 +2880,7 @@ function renderVotacoes(){
       +'<span class="pilha"><i class="ok" style="width:'+(v.sim/t*100).toFixed(1)+'%"></i>'
       +'<i class="crit" style="width:'+(v.nao/t*100).toFixed(1)+'%"></i>'
       +'<i class="warn" style="width:'+(v.outros/t*100).toFixed(1)+'%"></i></span></button>';
-  }).join("");
+  }).join(""):'<p class="empty card">Nenhuma das votações guardadas voto a voto é de '+esc(PER)+'.</p>';
 }
 ["vt-ord","vt-partido"].forEach(function(id){el(id).addEventListener("change",renderVotacoes);});
 el("vt-q").addEventListener("input",renderVotacoes);
@@ -2804,7 +2914,11 @@ function renderEmendas(){
       +ANOS_EMENDA.map(function(a){return '<option value="'+a+'">Só '+a+'</option>';}).join("");
     el("em-ano").dataset.pronto="1";
   }
-  var ano=el("em-ano").value, ord=el("em-ord").value, q=el("em-q").value;
+  el("em-ano").value=PER;
+  var ano=PER, ord=el("em-ord").value, q=el("em-q").value;
+  el("em-gran").innerHTML=avisoGranul(PER
+    ? "A CGU publica emenda por ano, não por mês: aqui está o ano de "+PER+" inteiro."
+    : "A CGU publica emenda por ano. Escolha um ano no alto da página para ver só ele.");
   var emp=0, pago=0, n=0;
   COM_EMENDA.forEach(function(p){ emp+=emValor(p,ano,"emp"); pago+=emValor(p,ano,"pago"); n+=emN(p,ano); });
   el("em-stats").innerHTML=
@@ -2991,11 +3105,15 @@ function mapaCircuito(nos,arestas,rotulo,W,H){
       var t=(typeof a.t==="number")?a.t:0.5;
       var lx=(1-t)*(1-t)*p1[0]+2*(1-t)*t*qx+t*t*p2[0];
       var ly=(1-t)*(1-t)*p1[1]+2*(1-t)*t*qy+t*t*p2[1];
-      var larg=String(a.rotulo).length*6.0+18;
-      rotulos.push('<g><rect x="'+(lx-larg/2).toFixed(1)+'" y="'+(ly-11).toFixed(1)+'" width="'+larg.toFixed(1)
-        +'" height="22" rx="11" fill="var(--bg)" stroke="'+cor+'" stroke-opacity="0.55"/>'
-        +'<text x="'+lx.toFixed(1)+'" y="'+(ly+4).toFixed(1)+'" text-anchor="middle" font-size="11" '
-        +'font-weight="600" style="font-family:var(--mono)" fill="'+cor+'">'+esc(a.rotulo)+'</text></g>');
+      var r2=a.rot2?String(a.rot2).slice(0,34):"";
+      var larg=Math.max(String(a.rotulo).length*6.0,r2.length*5.1)+18;
+      var alt=r2?34:22;
+      rotulos.push('<g><rect x="'+(lx-larg/2).toFixed(1)+'" y="'+(ly-alt/2).toFixed(1)+'" width="'+larg.toFixed(1)
+        +'" height="'+alt+'" rx="'+(alt/2)+'" fill="var(--bg)" stroke="'+cor+'" stroke-opacity="0.55"/>'
+        +'<text x="'+lx.toFixed(1)+'" y="'+(ly+(r2?-1:4)).toFixed(1)+'" text-anchor="middle" font-size="11" '
+        +'font-weight="600" style="font-family:var(--mono)" fill="'+cor+'">'+esc(a.rotulo)+'</text>'
+        +(r2?'<text x="'+lx.toFixed(1)+'" y="'+(ly+11).toFixed(1)+'" text-anchor="middle" font-size="8.5" '
+          +'fill="var(--muted)">'+esc(r2)+'</text>':'')+'</g>');
     }
   });
   return '<figure class="circuito"><svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(rotulo)+'" '
@@ -3038,13 +3156,15 @@ function mapaParl(x){
   if(x.campanha){
     nos.push({id:"c",cx:380,cy:330,r:40,titulo:"Campanha",sub:"contas ao TSE"});
     ar.push({de:"p",para:"c",dinheiro:true});
-    ar.push({de:"c",para:"e",rotulo:brlCurto(x.campanha),dinheiro:true,valor:x.campanha});
+    ar.push({de:"c",para:"e",rotulo:brlCurto(x.campanha),rot2:x.camp_por||"contrato de campanha",
+             dinheiro:true,valor:x.campanha});
   }
   if(x.cota){
     nos.push({id:"q",cx:380,cy:x.campanha?70:330,r:40,acima:!x.campanha,
               titulo:"Cota do mandato",larg:16,sub:"verba pública"});
     ar.push({de:"p",para:"q",dinheiro:true});
-    ar.push({de:"q",para:"e",rotulo:brlCurto(x.cota),dinheiro:true,valor:x.cota});
+    ar.push({de:"q",para:"e",rotulo:brlCurto(x.cota),rot2:x.cota_por||"reembolso de nota",
+             dinheiro:true,valor:x.cota});
   }
   return mapaCircuito(nos,ar,
     "A fita vermelha é a sociedade; as ocres são o dinheiro, e a espessura delas é o valor.",W,H);
@@ -3067,8 +3187,9 @@ function mapaDoador(x){
          sub:p?p.partido+"/"+p.uf:""};
   var volta=x.campanha+x.cota;
   return mapaCircuito([A,B,C],[
-      {de:"d",para:"c",rotulo:brlCurto(x.doou),dinheiro:true,valor:x.doou,curva:40},
-      {de:"c",para:"e",rotulo:brlCurto(volta),dinheiro:true,valor:volta,curva:40},
+      {de:"d",para:"c",rotulo:brlCurto(x.doou),rot2:"doação à campanha",dinheiro:true,valor:x.doou,curva:40},
+      {de:"c",para:"e",rotulo:brlCurto(volta),rot2:x.camp_por||x.cota_por||"pagamento à empresa",
+       dinheiro:true,valor:volta,curva:40},
       {de:"d",para:"e",rotulo:"é "+(x.qual||"sócio").toLowerCase(),destaque:true,curva:-66}
      ],"O dinheiro sai de quem doou, passa pelo parlamentar e volta para uma empresa da mesma pessoa.",760,490);
 }
@@ -3091,7 +3212,8 @@ function mapaCadastro(x){
   quem.forEach(function(p,i){
     var id="g"+i;
     nos.push({id:id,cx:132,cy:topo+i*96,r:34,parl:p,titulo:p.nome,larg:18,sub:p.partido+"/"+p.uf});
-    ar.push({de:id,para:"e",dinheiro:true,valor:pago[p.id]||0,t:0.42,
+    var tp=((f&&(f.tipos||[]))[0]||{}).tipo;
+    ar.push({de:id,para:"e",dinheiro:true,valor:pago[p.id]||0,t:0.42,rot2:tp||"cota parlamentar",
              rotulo:pago[p.id]?brlCurto(pago[p.id]):"cota"});
   });
   return mapaCircuito(nos,ar,
@@ -3373,6 +3495,33 @@ function renderFontes(){
     "Os dois caminhos do dinheiro chegam na mesma empresa. O quadro societário diz de quem ela é — e às vezes o nome volta ao começo.",
     680,470);
 })();
+
+/* ---------- o seletor de período ---------- */
+(function montaPeriodo(){
+  var sel=el("g-periodo");
+  sel.innerHTML='<option value="">Tudo desde '+ANO0+'</option>'
+    +perAnos().map(function(a){return '<option value="'+a+'">Só '+a+'</option>';}).join("");
+  sel.addEventListener("change",function(){
+    PER=sel.value;
+    /* os seletores de cada página passam a ser espelho do global */
+    PERIODO=PER||"all";
+    if(el("lg-ano")) el("lg-ano").value=PERIODO;
+    if(el("em-ano")) el("em-ano").value=PER;
+    if(typeof limpaCache==="function") limpaCache();
+    redesenhaTudo();
+  });
+})();
+function redesenhaTudo(){
+  if(current==="patrimonio") renderPatrimonio();
+  else if(current==="campanha") renderCampanha();
+  else if(current==="votacoes") renderVotacoes();
+  else if(current==="emendas") renderEmendas();
+  else if(current==="vinculos") renderVinculos();
+  else if(current==="cota") renderCota();
+  else if(current==="ligacoes") renderLigacoes();
+  else if(current==="composicao") renderComposicao();
+  else if(current==="parlamentares"){ if(sel) renderFicha(); else renderGrade(); }
+}
 
 /* ---------- boot ---------- */
 renderGrade();

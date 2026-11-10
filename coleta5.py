@@ -134,7 +134,8 @@ def main():
                                                        "tipo": "", "fonte": "", "ult": ""}))
         fonte = defaultdict(lambda: defaultdict(float))
         tot = defaultdict(float); ndoa = defaultdict(int)
-        gas = defaultdict(lambda: defaultdict(lambda: {"valor": 0.0, "n": 0, "nome": "", "tipo": ""}))
+        gas = defaultdict(lambda: defaultdict(lambda: {"valor": 0.0, "n": 0, "nome": "",
+                                                       "tipo": "", "desp": {}}))
         totg = defaultdict(float); ngas = defaultdict(int)
 
         z = zipfile.ZipFile(zpath)
@@ -180,6 +181,10 @@ def main():
                 d["valor"] += v; d["n"] += 1
                 d["nome"] = d["nome"] or nome
                 d["tipo"] = d["tipo"] or tipo
+                # a que o contrato de campanha se referia
+                ds = nulo(l.get("DS_DESPESA"))
+                if ds:
+                    d["desp"][ds] = d["desp"].get(ds, 0.0) + v
                 totg[pid] += v; ngas[pid] += 1
 
         for pid in set(list(tot) + list(totg)):
@@ -200,7 +205,9 @@ def main():
                 "n_fornecedores": len(gas[pid]),
                 "fornecedores": [{"doc": k if not k.startswith("nome:") else "",
                                   "nome": d["nome"], "tipo": d["tipo"],
-                                  "valor": round(d["valor"]), "n": d["n"]}
+                                  "valor": round(d["valor"]), "n": d["n"],
+                                  "desp": [{"o_que": q, "valor": round(y)} for q, y in
+                                           sorted(d["desp"].items(), key=lambda kv: -kv[1])[:3] if round(y)]}
                                  for k, d in forns],
             }
         print(f"     {len(tot)} com doacao, {len(totg)} com contrato "
