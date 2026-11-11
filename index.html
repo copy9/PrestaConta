@@ -245,7 +245,7 @@ tr.leitura b{color:var(--ink);font-weight:700}
 .atalhos button:hover{color:var(--accent-ink);background:var(--accent);border-color:var(--accent)}
 
 /* ---------- a vitrine da ferramenta, no alto da home ---------- */
-.vitrine{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.02fr);gap:30px 40px;
+.vitrine{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.02fr);gap:30px 40px;align-items:center;
   background:linear-gradient(160deg,var(--accent-veu),transparent 60%),var(--surface);
   border:1px solid var(--line-2);border-left:5px solid var(--accent);
   border-radius:var(--r);padding:28px;box-shadow:var(--sombra)}
@@ -296,13 +296,49 @@ tr.leitura b{color:var(--ink);font-weight:700}
 .qitem small{display:block;font-size:11.5px;color:var(--muted)}
 .qitem span{min-width:0}
 
-/* ---------- início ---------- */
-.hero{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);gap:40px;align-items:center;padding-block:22px 10px}
-@media (max-width:900px){.hero{grid-template-columns:1fr;gap:28px}}
-.hero h1{font-size:clamp(34px,5.4vw,56px);font-weight:800;letter-spacing:-0.04em;line-height:1.03}
+/* ---------- início ----------
+   O palco é a primeira tela: uma faixa com luz própria, onde a frase, a busca
+   e os números grandes vivem juntos. Antes a home começava com um título solto
+   sobre fundo igual ao resto e não dizia, em dois segundos, para que serve. */
+.palco{position:relative;border:1px solid var(--line-2);border-radius:26px;padding:40px 40px 0;
+  background:
+    radial-gradient(90% 130% at 8% 0%,var(--accent-veu),transparent 58%),
+    radial-gradient(70% 120% at 100% 10%,var(--data-bg),transparent 60%),
+    var(--surface);
+  box-shadow:var(--sombra-alta);overflow:hidden}
+.palco::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:26px;
+  box-shadow:inset 0 1px 0 color-mix(in srgb,var(--accent) 22%,transparent)}
+@media (max-width:760px){.palco{padding:26px 20px 0;border-radius:20px}}
+.kicker{display:inline-flex;align-items:center;gap:9px;font-family:var(--display);font-size:13px;font-weight:700;
+  color:var(--accent);background:var(--accent-veu);border-radius:99px;padding:7px 15px;margin-bottom:22px}
+.kicker .dot{background:var(--accent);animation:pulso 2.6s ease-in-out infinite}
+@keyframes pulso{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.75)}}
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.92fr);gap:44px;align-items:center;
+  padding-bottom:34px}
+@media (max-width:900px){.hero{grid-template-columns:1fr;gap:26px;padding-bottom:26px}}
+.hero h1{font-size:clamp(35px,4.7vw,55px);font-weight:800;letter-spacing:-0.045em;line-height:1.02}
 .hero h1 em{font-style:normal;color:var(--accent)}
-.hero .lede{font-size:18px;color:var(--ink-2);margin-top:18px;max-width:46ch;line-height:1.55}
+.hero .lede{font-size:18.5px;color:var(--ink-2);margin-top:22px;max-width:50ch;line-height:1.55}
+.hero .lede b{color:var(--ink);font-weight:700}
+.hero .hbusca{margin-top:28px}
 .hero .cta{display:flex;gap:11px;flex-wrap:wrap;margin-top:24px}
+/* os números grandes, no rodapé do palco */
+.numerao{display:grid;grid-template-columns:repeat(auto-fit,minmax(142px,1fr));gap:2px;
+  border-top:1px solid var(--line-2);margin:0 -40px;background:var(--line)}
+@media (max-width:760px){.numerao{margin:0 -20px;grid-template-columns:repeat(2,1fr)}}
+.numerao div{background:var(--surface);padding:20px 22px;display:grid;gap:3px;align-content:start;min-width:0}
+.numerao b{font-family:var(--display);font-size:clamp(24px,2.5vw,32px);font-weight:800;line-height:1.05;
+  letter-spacing:-0.05em;font-variant-numeric:tabular-nums;color:var(--ink)}
+.numerao b.destaca{color:var(--accent)}
+.numerao b.perigo{color:var(--crit)}
+.numerao span{font-size:13px;color:var(--muted);line-height:1.35}
+/* o chamado final */
+.fecho{display:flex;gap:26px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  border:1px solid var(--line-2);border-radius:var(--r);padding:30px 34px;
+  background:radial-gradient(70% 160% at 0% 0%,var(--accent-veu),transparent 65%),var(--surface)}
+.fecho h2{font-size:clamp(24px,2.8vw,32px);letter-spacing:-0.04em}
+.fecho p{font-size:16px;color:var(--ink-2);margin-top:9px;max-width:56ch;line-height:1.55}
+.fecho .btn{flex:none}
 .herofig{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:var(--sombra)}
 .herofig svg{width:100%;height:auto;display:block}
 .herofig figcaption{font-size:13px;color:var(--muted);padding:12px 4px 2px;line-height:1.5}
@@ -652,33 +688,45 @@ img{max-width:100%}
 
   <!-- ============ INÍCIO ============ -->
   <section class="view" id="view-inicio">
-    <div class="hero">
-      <div>
-        <h1>Descubra o que o <em>seu político</em> faz com o seu dinheiro.</h1>
-        <p class="lede" id="hero-lede"></p>
-        <span class="busca hbusca" style="margin-top:26px">
-          <svg class="lupa" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><line x1="10.9" y1="10.9" x2="14.4" y2="14.4"/></svg>
-          <input type="search" id="hq" placeholder="Digite o nome de um deputado ou senador" aria-label="Digite o nome de um deputado ou senador" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="hq-sug">
-          <span class="sugbox" id="hq-sug" role="listbox" hidden></span>
-        </span>
-        <div class="atalhos">
-          <button type="button" data-go="parlamentares">Ver todos os 594</button>
-          <button type="button" data-go="cota">Quem gastou mais?</button>
-          <button type="button" data-go="achados">O que vocês acharam?</button>
+    <div class="palco">
+      <div class="hero">
+        <div>
+          <p class="kicker"><span class="dot"></span>Dados oficiais do Congresso Nacional, cruzados</p>
+          <h1>O dinheiro é seu.<br><em>Veja para onde ele vai.</em></h1>
+          <p class="lede" id="hero-lede"></p>
+          <span class="busca hbusca">
+            <svg class="lupa" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5"/><line x1="10.9" y1="10.9" x2="14.4" y2="14.4"/></svg>
+            <input type="search" id="hq" placeholder="Digite o nome do seu deputado ou senador" aria-label="Digite o nome do seu deputado ou senador" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="hq-sug">
+            <span class="sugbox" id="hq-sug" role="listbox" hidden></span>
+          </span>
+          <div class="atalhos">
+            <button type="button" data-go="achados">O que vocês já acharam?</button>
+            <button type="button" data-go="cota">Quem gastou mais?</button>
+            <button type="button" data-go="parlamentares">Ver todos os 594</button>
+          </div>
         </div>
+        <div id="hero-fig"></div>
       </div>
-      <div id="hero-fig"></div>
+      <div class="numerao" id="inicio-stats"></div>
     </div>
 
-    <div class="statstrip" id="inicio-stats"></div>
-
     <div class="vitrine" id="inicio-achados"></div>
+
+    <div class="sec rule">
+      <p class="eyebrow">Como se usa isto</p>
+      <div class="passos">
+        <div class="card passo"><span class="n">1</span><h4>Digite um nome</h4><p>O do seu deputado, do senador do seu estado, ou de quem você viu no noticiário. A ficha abre com tudo o que existe sobre ele nas bases oficiais.</p></div>
+        <div class="card passo"><span class="n">2</span><h4>Siga o dinheiro</h4><p>Quem pagou a campanha, quanto o gabinete gastou, quais empresas receberam, quem é dono delas, para que cidade foi a emenda, e como ele votou.</p></div>
+        <div class="card passo"><span class="n">3</span><h4>Cobre com a fonte na mão</h4><p>Cada número tem link para a página oficial. Você chega na conversa com o documento, não com boato — e é isso que faz diferença.</p></div>
+      </div>
+    </div>
 
     <div class="sec rule editorial">
       <p class="eyebrow">Por que este site existe</p>
       <div class="prosa">
         <p>Quase tudo sobre um político já é público — <strong>mas está espalhado em cinco sites diferentes</strong>, cada um com um jeito próprio, e nenhum conversa com o outro. Para saber se a empresa que recebeu dinheiro do gabinete pertence a quem pagou a campanha, você teria que abrir cinco sistemas e cruzar na mão.</p>
         <p>Este site já fez esse trabalho. Você digita um nome e vê, numa página só: <strong>quanto a pessoa gastou com o gabinete</strong>, quem financiou a eleição dela, quais empresas receberam esse dinheiro, <strong>quem é o dono de cada empresa</strong>, quanto ela declarou de patrimônio em cada eleição, para quais cidades mandou emenda e como votou no plenário.</p>
+        <p>Fiscalizar não devia ser trabalho de especialista. <strong>Quem paga a conta tem o direito de ver o extrato</strong> — e de entender o que está vendo, sem precisar de curso de contabilidade pública.</p>
         <p>Tudo com link para a página oficial, para você conferir. <strong>Nada é opinião nossa</strong> — é registro público, reunido num lugar.</p>
       </div>
     </div>
@@ -701,6 +749,14 @@ img{max-width:100%}
     <div class="sec rule">
       <p class="eyebrow">Leia antes de tirar conclusão</p>
       <div class="card naoe" id="inicio-naoe"></div>
+    </div>
+
+    <div class="fecho">
+      <div>
+        <h2>Comece pelo seu.</h2>
+        <p>O deputado que você elegeu, o senador do seu estado. Leva trinta segundos — e você sai sabendo mais sobre ele do que a maioria dos eleitores dele.</p>
+      </div>
+      <button type="button" class="btn sim" data-foco="busca">Procurar um político</button>
     </div>
   </section>
 
@@ -1337,14 +1393,25 @@ function pct(x){ return (x*100).toLocaleString("pt-BR",{maximumFractionDigits:1}
 el("n-data").textContent=dataBR(DADOS.gerado_em);
 el("rodape-data").textContent="Coleta de "+dataBR(DADOS.gerado_em)+" · "+nf(DADOS.total)
   +" parlamentares, "+nf(DADOS.com_foto)+" com foto oficial, "+nf(NDOCS)+" notas de cota somadas.";
-el("hero-lede").textContent="São 594 pessoas com cadeira no Congresso. Esta página mostra quem são, "
-  +"quanto cada gabinete gastou de cota desde 2023 — "+brlCurto(GASTO_TOTAL)+" no total — e o CNPJ de cada empresa que recebeu.";
-el("inicio-stats").innerHTML=
-  '<div><b class="num">'+nf(DEP.length)+'</b><span>deputados federais</span></div>'
- +'<div><b class="num">'+nf(SEN.length)+'</b><span>senadores</span></div>'
- +'<div><b class="num">'+brlCurto(GASTO_TOTAL)+'</b><span>de cota desde 2023</span></div>'
- +'<div><b class="num">'+nf(FORN.length)+'</b><span>empresas fornecedoras</span></div>'
- +'<div><b class="num">'+nf(LISTA_PART.length)+'</b><span>partidos com bancada</span></div>';
+/* a abertura da home. Roda no fim do arquivo, quando as somas de campanha e de
+   emenda já existem: é o número grande somado que diz, em um segundo, o
+   tamanho do que está aqui. */
+function renderHome(){
+  var camp=COM_CAMP.reduce(function(s,p){
+    return s+ANOS_CAMP.reduce(function(t,a){return t+campTotal(p,a);},0);},0);
+  var emen=COM_EMENDA.reduce(function(s,p){return s+(p.emendas.total_empenhado||0);},0);
+  var tudo=GASTO_TOTAL+camp+emen;
+  el("hero-lede").innerHTML="São <b>594 pessoas</b> decidindo o que fazer com o dinheiro que você paga. "
+    +"Aqui está <b>"+esc(brlCurto(tudo))+" de dinheiro público</b> reunido num lugar só: a verba do "
+    +"gabinete nota por nota, a doação de campanha doador por doador, a emenda que foi para a sua "
+    +"cidade — e o nome do dono de cada empresa que recebeu.";
+  el("inicio-stats").innerHTML=
+    '<div><b class="destaca">'+brlCurto(tudo)+'</b><span>em verba de gabinete, campanha e emendas</span></div>'
+   +'<div><b>'+nf(PARL.length)+'</b><span>deputados e senadores em exercício</span></div>'
+   +'<div><b>'+nf(FORN.length)+'</b><span>empresas que receberam</span></div>'
+   +'<div><b>'+nf(NDOCS)+'</b><span>notas fiscais abertas</span></div>'
+   +'<div><b class="perigo">'+nf(ACHADOS.length)+'</b><span>coincidências que o site achou</span></div>';
+}
 
 var NAO_E=[
  ["Não acusa ninguém de nada.","Gasto de cota é verba de gabinete prevista em lei. Aparecer no topo do ranking significa ter usado a cota, não ter feito algo irregular."],
@@ -4179,8 +4246,11 @@ function renderFontes(){
    dizendo "falta RFB", e essa seta deixou de ser verdade. */
 (function heroFig(){
   var alvo=el("hero-fig"); if(!alvo) return;
-  var somaCamp=0, ultimo=ANOS_CAMP[ANOS_CAMP.length-1];
-  COM_CAMP.forEach(function(p){ var c=campDe(p,ultimo); if(c) somaCamp+=c.total; });
+  /* todas as eleições, para bater com o número grande da abertura: mostrar
+     só a última ao lado de um total que soma as duas parecia erro de conta */
+  var somaCamp=0;
+  COM_CAMP.forEach(function(p){
+    ANOS_CAMP.forEach(function(a){ somaCamp+=campTotal(p,a); }); });
   /* no hero o circuito é um anel: o dinheiro sai do parlamentar por dois
      caminhos, chega na empresa, e o fio vermelho pergunta de quem ela é */
   var nos=[
@@ -4234,6 +4304,7 @@ function redesenhaTudo(){
 }
 
 /* ---------- boot ---------- */
+renderHome();
 renderGrade();
 var start=(location.hash||"").slice(1);
 go(VIEWS.indexOf(start)>=0?start:"inicio");
