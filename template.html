@@ -273,6 +273,22 @@ tr.leitura b{color:var(--ink);font-weight:700}
 .alerta-card .meta2{display:flex;flex-wrap:wrap;align-items:center;gap:9px}
 .chamada.teia{background:var(--crit-bg);color:var(--crit)}
 .chamada.teia:hover{background:var(--crit);color:#fff}
+/* o cartão inteiro abre o achado */
+.alerta-card.abre{cursor:pointer;transition:border-color .14s ease,transform .14s ease}
+.alerta-card.abre:hover{border-color:var(--line-2);transform:translateY(-2px)}
+.alerta-card.abre:hover h4{color:var(--accent)}
+.alerta-card .maisinfo{font-family:var(--display);font-size:13px;font-weight:700;color:var(--accent);
+  margin-left:auto;white-space:nowrap}
+/* os envolvidos, dentro do detalhe */
+.quemlista{display:grid;grid-template-columns:repeat(auto-fill,minmax(188px,1fr));gap:7px;
+  max-height:310px;overflow-y:auto}
+.qitem{display:flex;align-items:center;gap:9px;text-align:left;font:inherit;color:inherit;cursor:pointer;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:99px;padding:5px 12px 5px 5px;min-width:0}
+.qitem:hover{border-color:var(--accent)}
+.qitem b{display:block;font-family:var(--display);font-size:13px;font-weight:700;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.qitem small{display:block;font-size:11.5px;color:var(--muted)}
+.qitem span{min-width:0}
 
 /* ---------- início ---------- */
 .hero{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);gap:40px;align-items:center;padding-block:22px 10px}
@@ -3843,12 +3859,31 @@ el("al-q").addEventListener("input",renderVinculos);
      3 coincidência — bate, e bater pode ser acaso */
 var NIVEL={1:["Vínculo confirmado","crit"],2:["Merece checagem","warn"],3:["Coincidência","ml"]};
 var GRAV_REGRA={socio_repetido:2,socio_multi:2,exclusivo:2,emenda_mesma_cidade:3,campanha_e_cota:3};
+/* um sócio que alcança 480 gabinetes é companhia aérea, não esquema: o próprio
+   texto do achado diz isso. Esses descem para "coincidência", senão afogam a
+   lista e a busca por nome, já que quase todo parlamentar está dentro deles. */
+function gravDe(a){
+  var g=GRAV_REGRA[a.tipo]||3;
+  if(a.tipo==="socio_multi"&&(a.ids||[]).length>40) g=3;
+  return g;
+}
 var NOMES_ACHADO={
   socio_parl:"O próprio político é dono da empresa que recebeu",
   socio_doa:"Quem pagou a campanha é dono da empresa que recebeu",
   cadastro_estranho:"Empresa com cadastro que não fecha"
 };
 Object.keys(NOMES_ALERTA).forEach(function(k){ NOMES_ACHADO[k]=NOMES_ALERTA[k]; });
+
+/* junta CNPJs que são a mesma empresa (matriz e filiais têm a mesma razão) */
+function empresasAgrupadas(cnpjs){
+  var por={}, ordem=[];
+  (cnpjs||[]).forEach(function(c){
+    var e=empresaDe(c), nome=e?e.r:cnpjFmt(c);
+    if(!por[nome]){ por[nome]={nome:nome,cnpj:c,n:0}; ordem.push(nome); }
+    por[nome].n++;
+  });
+  return ordem.map(function(n){return por[n];});
+}
 
 var ACHADOS=(function(){
   var L=[];
@@ -3865,10 +3900,11 @@ var ACHADOS=(function(){
       valor:x.cota||0,ids:(x.quem||[]).slice(),cnpjs:[x.cnpj]});
   });
   ALERTAS.forEach(function(a){
-    L.push({tipo:a.tipo,grav:GRAV_REGRA[a.tipo]||3,titulo:a.titulo,leitura:a.leitura,
+    L.push({tipo:a.tipo,grav:gravDe(a),titulo:a.titulo,leitura:a.leitura,
       valor:a.valor||0,ids:idsDoAlerta(a),cnpjs:(a.cnpjs||[]).slice()});
   });
   L.sort(function(a,b){ return a.grav-b.grav || b.valor-a.valor; });
+  L.forEach(function(a,i){ a.i=i; });
   return L;
 })();
 
@@ -3905,6 +3941,11 @@ function renderAchados(){
     return casaBusca(q,a.titulo+" "+nomes+" "+emps+" "+a.leitura);
   });
   if(ord==="valor") lista=lista.slice().sort(function(x,y){return y.valor-x.valor||x.grav-y.grav;});
+  /* procurou por um nome: primeiro o que é sobre essa pessoa. Um achado que
+     envolve 480 parlamentares cita o nome dela, mas não é sobre ela. */
+  else if(semAcento(q).trim())
+    lista=lista.slice().sort(function(x,y){
+      return x.grav-y.grav || x.ids.length-y.ids.length || y.valor-x.valor;});
 
   var porNivel={1:0,2:0,3:0};
   ACHADOS.forEach(function(a){porNivel[a.grav]++;});
@@ -3915,14 +3956,24 @@ function renderAchados(){
     +'<div><b class="num" style="color:var(--crit)">'+nf(porNivel[1])+'</b><span>com vínculo confirmado por documento</span></div>'
     +'<div><b class="num" style="color:var(--accent)">'+nf(porNivel[2])+'</b><span>que merecem checagem</span></div>'
     +'<div><b class="num">'+nf(porNivel[3])+'</b><span>coincidências a conferir</span></div>';
-  el("ac-achou").textContent=filtrando
-    ? nf(lista.length)+(lista.length===1?" achado":" achados")+" com esses filtros" : "";
+  /* quem digita um nome quer saber o que tem sobre aquela pessoa: o site diz
+     quantos achados a envolvem e põe o nome dela na frente em cada cartão */
+  var alvo=null;
+  if(semAcento(q).trim().length>2){
+    var cand=PARL.filter(function(p){return casaBusca(q,p.nome+" "+(p.nome_civil||""));});
+    if(cand.length===1) alvo=cand[0];
+  }
+  el("ac-achou").textContent=!filtrando ? ""
+    : alvo ? nf(lista.length)+(lista.length===1?" achado envolve ":" achados envolvem ")+alvo.nome
+    : nf(lista.length)+(lista.length===1?" achado":" achados")+" com esses filtros";
 
   var vis=lista.slice(0,acMostrando);
   el("ac-lista").innerHTML=vis.length? vis.map(function(a){
       var quem=a.ids.map(parlPorId).filter(Boolean);
+      if(alvo) quem=quem.slice().sort(function(x,y){
+        return (y.id===alvo.id?1:0)-(x.id===alvo.id?1:0);});
       var nv=NIVEL[a.grav];
-      return '<div class="alerta-card n'+a.grav+'">'
+      return '<div class="alerta-card n'+a.grav+' abre" data-achado="'+a.i+'" role="button" tabindex="0">'
         +'<div class="meta2"><span class="chip '+nv[1]+'"><i class="dot"></i>'+nv[0]+'</span>'
         /* nas três famílias confirmadas o tipo e o título são a mesma frase;
            repeti-la ao lado da etiqueta só faz barulho */
@@ -3934,12 +3985,13 @@ function renderAchados(){
         +quem.slice(0,6).map(function(p){
            return '<button type="button" class="chamada" data-pid="'+esc(p.id)+'">'+esc(p.nome)+'</button>';
          }).join("")
-        +a.cnpjs.slice(0,4).map(function(c){
-           var e=empresaDe(c);
-           return '<button type="button" class="chamada" data-cnpj="'+esc(c)+'">'+esc(e?e.r.slice(0,36):cnpjFmt(c))+'</button>';
+        +empresasAgrupadas(a.cnpjs).slice(0,4).map(function(x){
+           return '<button type="button" class="chamada" data-cnpj="'+esc(x.cnpj)+'">'
+             +esc(x.nome.slice(0,36))+'</button>';
          }).join("")
         +(a.circ?'<button type="button" class="chamada teia" data-circuito="'+esc(a.circ)+'">ver a teia</button>':'')
         +(quem.length>6?'<span class="hint">+'+nf(quem.length-6)+' parlamentares</span>':'')
+        +'<span class="maisinfo">abrir &rarr;</span>'
         +'</div></div>';
     }).join("")
     : '<p class="empty card">Nenhum achado corresponde a esses filtros.</p>';
@@ -3952,6 +4004,58 @@ el("ac-q").addEventListener("input",function(){acMostrando=AC_PAG;renderAchados(
   el(id).addEventListener("change",function(){acMostrando=AC_PAG;renderAchados();});
 });
 el("ac-mais").addEventListener("click",function(){acMostrando+=AC_PAG;renderAchados();});
+
+/* ---------- o achado aberto por inteiro ----------
+   No cartão a leitura é cortada e só cabem seis nomes. Clicar abre tudo:
+   o texto inteiro, todos os parlamentares envolvidos com foto, todas as
+   empresas com CNPJ, e o desenho do circuito quando existe. */
+function detAchado(i){
+  var a=ACHADOS[+i]; if(!a) return "";
+  var nv=NIVEL[a.grav], quem=a.ids.map(parlPorId).filter(Boolean);
+  var expl={1:"Um documento público liga as duas pontas: o nome e os seis dígitos do CPF batem nas duas bases, ou a doação e a sociedade estão as duas declaradas. O vínculo existe — o que ele significa é outra discussão.",
+            2:"O padrão é fora da curva, mas tem explicação possível. Vale conferir antes de concluir qualquer coisa.",
+            3:"Os registros batem, e bater pode ser acaso. Está aqui para você conferir, não para acusar ninguém."};
+  return '<div class="mhead"><div><h2>'+esc(a.titulo)+'</h2>'
+    +'<p><span class="chip '+nv[1]+'"><i class="dot"></i>'+nv[0]+'</span> '
+    +esc(NOMES_ACHADO[a.tipo]||a.tipo)+(a.valor?' · '+brl(a.valor):'')+'</p></div>'
+    +'<button type="button" class="closebtn" id="dt-fechar" aria-label="Fechar">&times;</button></div>'
+    +(a.circ?mapaDoVinculo(a.circ.split(":")[0],
+        (a.circ.indexOf("parl:")===0?VINC.socio_parlamentar
+         :a.circ.indexOf("doador:")===0?VINC.socio_doador:VINC.cadastro)[+a.circ.split(":")[1]]):'')
+    +'<div class="oque"><p>'+esc(a.leitura)+'</p></div>'
+    +'<p class="hint">'+esc(expl[a.grav])+'</p>'
+    +(function(){
+       /* matriz e filial são CNPJs diferentes com a mesma razão social; listar
+          "CLARO NXT" quatro vezes parecia defeito da página */
+       var g=empresasAgrupadas(a.cnpjs);
+       if(!g.length) return "";
+       return '<div><p class="eyebrow" style="margin-bottom:9px">'
+         +(g.length===1?'A empresa':'As '+nf(g.length)+' empresas')
+         +(g.length<a.cnpjs.length?' — '+nf(a.cnpjs.length)+' CNPJs com matriz e filiais':'')+'</p>'
+         +'<div class="acoes2">'+g.map(function(x){
+            return '<button type="button" class="btn" data-cnpj="'+esc(x.cnpj)+'">'+esc(x.nome)
+              +(x.n>1?' <span class="hint">+'+(x.n-1)+'</span>':'')+'</button>';
+          }).join("")+'</div></div>';
+     })()
+    +(quem.length?'<div><p class="eyebrow" style="margin-bottom:9px">'
+      +(quem.length===1?'O parlamentar':'Os '+nf(quem.length)+' parlamentares envolvidos')+'</p>'
+      +'<div class="quemlista">'+quem.slice(0,60).map(function(p){
+         return '<button type="button" class="qitem" data-pid="'+esc(p.id)+'">'+foto(p,"sm")
+           +'<span><b>'+esc(p.nome)+'</b><small>'+esc(p.partido)+'/'+esc(p.uf)+'</small></span></button>';
+       }).join("")
+      +'</div>'+(quem.length>60?'<p class="hint">Mostrando 60 de '+nf(quem.length)+'.</p>':'')
+      +'</div>':'');
+}
+document.addEventListener("click",function(e){
+  if(e.target.closest(".chamada")) return;
+  var c=e.target.closest("[data-achado]"); if(!c) return;
+  abrirDetalhe(detAchado(c.dataset.achado));
+});
+document.addEventListener("keydown",function(e){
+  if(e.key!=="Enter"&&e.key!==" ") return;
+  var c=e.target.closest&&e.target.closest("[data-achado]"); if(!c) return;
+  e.preventDefault(); abrirDetalhe(detAchado(c.dataset.achado));
+});
 
 /* a vitrine da home: a ferramenta não pode viver escondida numa aba interna,
    então os três achados mais fortes aparecem logo abaixo dos números */

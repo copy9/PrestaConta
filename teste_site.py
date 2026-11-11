@@ -1,5 +1,5 @@
 from playwright.sync_api import sync_playwright
-U="http://127.0.0.1:8852/index.html"
+U="http://127.0.0.1:8874/index.html"
 falhas=[]
 def ok(c,m):
     print(("OK    " if c else "FALHA ")+m)
